@@ -1,0 +1,172 @@
+// ============================================================================
+// Fenz Akademi — Prisma Veritabanı Şeması
+// Ortaokul (5-8. sınıf) Eğitim Platformu
+// ============================================================================
+// Güvenlik Notları:
+// - passwordHash: bcrypt ile hash'lenir, düz metin ASLA saklanmaz
+// - email: @unique — duplicate kayıt önlenir
+// - Progress & QuizResult: composite unique ile duplicate kayıt önlenir
+// - options alanı Json tipinde — esnek soru seçenekleri için
+// ============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+
+// ─── Enum Tanımları ─────────────────────────────────────────────────────────
+
+/// Kullanıcı rolleri — RBAC middleware'de kullanılır
+enum Role {
+  STUDENT
+  TEACHER
+  PARENT
+  ADMIN
+}
+
+/// Soru durumu — DRAFT henüz yayınlanmamış, PUBLISHED öğrencilere açık
+enum QuestionStatus {
+  DRAFT
+  PUBLISHED
+}
+
+// ─── Kullanıcı Modeli ───────────────────────────────────────────────────────
+
+/// Platform kullanıcısı (öğrenci, öğretmen, veli veya yönetici)
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  role         Role     @default(STUDENT)
+  classLevel   Int?     @map("class_level") /// 5, 6, 7 veya 8. sınıf
+  points       Int      @default(0) /// Gamification puanı
+  streak       Int      @default(0) /// Günlük ardışık çalışma serisi
+  avatarUrl    String?  @map("avatar_url")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // İlişkiler
+  progresses  Progress[]
+  quizResults QuizResult[]
+
+  @@index([role])
+  @@index([classLevel])
+  @@map("users")
+}
+
+// ─── Kurs Modeli ────────────────────────────────────────────────────────────
+
+/// Bir dersin ana kurs birimi (ör: "6. Sınıf Matematik")
+model Course {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  gradeLevel  Int      @map("grade_level") /// Hedef sınıf seviyesi (5-8)
+  imageUrl    String?  @map("image_url")
+  isPublished Boolean  @default(false) @map("is_published")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // İlişkiler
+  videoLessons VideoLesson[]
+
+  @@index([gradeLevel])
+  @@map("courses")
+}
+
+// ─── Video Ders Modeli ──────────────────────────────────────────────────────
+
+/// Bir kurs içindeki tekil video ders
+model VideoLesson {
+  id                  String   @id @default(uuid())
+  courseId             String   @map("course_id")
+  title               String
+  cloudflareStreamUrl String?  @map("cloudflare_stream_url")
+  duration            Int?     /// Saniye cinsinden video süresi
+  orderIndex          Int      @default(0) @map("order_index")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  // İlişkiler
+  course      Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  questions   Question[]
+  progresses  Progress[]
+  quizResults QuizResult[]
+
+  @@index([courseId])
+  @@index([courseId, orderIndex])
+  @@map("video_lessons")
+}
+
+// ─── Soru Modeli ────────────────────────────────────────────────────────────
+
+/// Bir video derse bağlı çoktan seçmeli soru
+model Question {
+  id            String         @id @default(uuid())
+  lessonId      String         @map("lesson_id")
+  content       String         /// Soru metni (XSS sanitizasyonundan geçirilir)
+  imageUrl      String?        @map("image_url")
+  options       Json           /// Seçenekler dizisi: ["A seçeneği", "B seçeneği", ...]
+  correctAnswer String         @map("correct_answer")
+  isAiGenerated Boolean        @default(false) @map("is_ai_generated")
+  status        QuestionStatus @default(DRAFT)
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+
+  // İlişkiler
+  lesson VideoLesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@index([lessonId])
+  @@index([lessonId, status])
+  @@map("questions")
+}
+
+// ─── İlerleme Modeli ────────────────────────────────────────────────────────
+
+/// Öğrencinin bir video dersteki izleme ilerlemesi
+model Progress {
+  id              String   @id @default(uuid())
+  studentId       String   @map("student_id")
+  lessonId        String   @map("lesson_id")
+  watchPercentage Float    @default(0) @map("watch_percentage") /// 0.0 - 100.0
+  isCompleted     Boolean  @default(false) @map("is_completed")
+  lastWatchedAt   DateTime @default(now()) @map("last_watched_at")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  // İlişkiler
+  student User        @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  lesson  VideoLesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, lessonId])
+  @@index([studentId])
+  @@map("progress")
+}
+
+// ─── Quiz Sonucu Modeli ─────────────────────────────────────────────────────
+
+/// Öğrencinin bir quiz'deki sonucu
+model QuizResult {
+  id           String   @id @default(uuid())
+  studentId    String   @map("student_id")
+  lessonId     String   @map("lesson_id")
+  correctCount Int      @default(0) @map("correct_count")
+  wrongCount   Int      @default(0) @map("wrong_count")
+  score        Float    @default(0) /// 0.0 - 100.0 arası yüzdelik puan
+  completedAt  DateTime @default(now()) @map("completed_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  // İlişkiler
+  student User        @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  lesson  VideoLesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, lessonId])
+  @@index([studentId])
+  @@index([studentId, score])
+  @@map("quiz_results")
+}
