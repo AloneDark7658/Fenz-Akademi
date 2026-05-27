@@ -48,6 +48,7 @@ model User {
   streak       Int      @default(0) /// Günlük ardışık çalışma serisi
   avatarUrl    String?  @map("avatar_url")
   parentId     String?  @map("parent_id") /// Velinin ID'si (Eğer öğrenciyse)
+  inviteCode   String?  @unique @map("invite_code") /// Öğrenci ile veliyi eşleştiren 6 haneli kod
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
@@ -91,7 +92,7 @@ model VideoLesson {
   id                  String   @id @default(uuid())
   courseId             String   @map("course_id")
   title               String
-  cloudflareStreamUrl String?  @map("cloudflare_stream_url")
+  bunnyVideoId        String?  @map("bunny_video_id")
   duration            Int?     /// Saniye cinsinden video süresi
   orderIndex          Int      @default(0) @map("order_index")
   createdAt           DateTime @default(now()) @map("created_at")

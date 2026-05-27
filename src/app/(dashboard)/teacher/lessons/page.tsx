@@ -172,15 +172,10 @@ export default async function TeacherLessonsPage() {
                               </div>
                             </div>
                             {/* Video linki varsa */}
-                            {lesson.cloudflareStreamUrl && (
-                              <a
-                                href={lesson.cloudflareStreamUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="opacity-0 group-hover:opacity-100 transition-opacity text-edu-cyan"
-                              >
+                            {lesson.bunnyVideoId && (
+                              <div className="opacity-0 group-hover:opacity-100 transition-opacity text-edu-cyan" title={`Video ID: ${lesson.bunnyVideoId}`}>
                                 <Link2 className="w-3.5 h-3.5" />
-                              </a>
+                              </div>
                             )}
                           </div>
                         ))}

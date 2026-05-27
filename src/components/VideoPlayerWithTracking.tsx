@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { updateProgress } from "@/app/actions/progress";
 import { cn } from "@/lib/utils";
+import { HlsPlayer } from "@/components/video/HlsPlayer";
 
 // ============================================================================
 // Fenz Akademi — Güvenli Video İzleme Bileşeni
@@ -118,21 +119,15 @@ export function VideoPlayerWithTracking({
 
   return (
     <div className={cn("flex flex-col space-y-4", className)}>
-      {/* Video Oynatıcı */}
-      <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-edu-navy/20 bg-black/90 shadow-lg">
-        <video
-          ref={videoRef}
-          src={videoUrl}
-          controls
-          controlsList="nodownload"
-          onLoadedMetadata={handleLoadedMetadata}
-          onTimeUpdate={handleTimeUpdate}
-          onSeeking={handleSeeking}
-          className="h-full w-full object-contain"
-        >
-          Tarayıcınız HTML5 video etiketini desteklemiyor.
-        </video>
-      </div>
+      {/* Video Oynatıcı (HLS Destekli) */}
+      <HlsPlayer
+        videoId={videoUrl}
+        videoRef={videoRef}
+        onLoadedMetadata={handleLoadedMetadata}
+        onTimeUpdate={handleTimeUpdate}
+        onSeeking={handleSeeking}
+        className="w-full"
+      />
 
       {/* İlerleme Çubuğu ve Aksiyonlar */}
       <div className="flex flex-col space-y-2 rounded-xl border bg-card p-4 shadow-sm">

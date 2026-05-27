@@ -76,8 +76,8 @@ export default async function LessonPage({
   const hasQuiz = lesson._count.questions > 0;
   const isCompleted = (progress?.watchPercentage ?? 0) >= 90;
   const videoUrl =
-    lesson.cloudflareStreamUrl ??
-    "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+    lesson.bunnyVideoId ??
+    "mock-bunny-id-placeholder";
 
   // Sonraki ve önceki dersleri bul
   const siblings = lesson.course.videoLessons;

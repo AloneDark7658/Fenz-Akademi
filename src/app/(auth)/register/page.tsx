@@ -17,6 +17,8 @@ import {
   AlertCircle,
   Loader2,
   ChevronDown,
+  Sparkles,
+  ArrowRight
 } from "lucide-react";
 
 // ─── Yardımcı ────────────────────────────────────────────────────────────────
@@ -24,8 +26,8 @@ import {
 function FieldError({ errors }: { errors?: string[] }) {
   if (!errors?.length) return null;
   return (
-    <p className="flex items-center gap-1 text-red-400 text-xs mt-1">
-      <AlertCircle className="w-3 h-3 flex-shrink-0" />
+    <p className="flex items-center gap-1 text-red-400 text-xs mt-1.5 ml-1">
+      <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
       {errors[0]}
     </p>
   );
@@ -34,8 +36,7 @@ function FieldError({ errors }: { errors?: string[] }) {
 // ─── Rol Seçici ───────────────────────────────────────────────────────────────
 
 const ROLES = [
-  { value: "STUDENT", label: "Öğrenci", icon: BookOpen, color: "text-edu-cyan" },
-  { value: "TEACHER", label: "Öğretmen", icon: GraduationCap, color: "text-edu-orange" },
+  { value: "STUDENT", label: "Öğrenci", icon: BookOpen, color: "text-cyan-400" },
   { value: "PARENT", label: "Veli", icon: Users, color: "text-purple-400" },
 ];
 
@@ -47,7 +48,7 @@ function RoleSelector({
   onChange: (v: string) => void;
 }) {
   return (
-    <div className="grid grid-cols-3 gap-2">
+    <div className="grid grid-cols-2 gap-4">
       {ROLES.map(({ value, label, icon: Icon, color }) => {
         const active = selected === value;
         return (
@@ -55,13 +56,13 @@ function RoleSelector({
             key={value}
             type="button"
             onClick={() => onChange(value)}
-            className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border text-xs font-semibold transition-all ${
+            className={`flex flex-col items-center gap-2 py-4 px-2 rounded-2xl border text-xs font-bold transition-all duration-300 ${
               active
-                ? "border-edu-cyan bg-edu-cyan/10 text-white shadow-md shadow-edu-cyan/10"
-                : "border-white/10 bg-white/5 text-slate-400 hover:border-white/20 hover:text-slate-300"
+                ? "border-cyan-400 bg-cyan-500/10 text-white shadow-[0_0_15px_rgba(34,211,238,0.2)]"
+                : "border-white/10 bg-black/20 text-slate-400 hover:border-white/20 hover:text-slate-200"
             }`}
           >
-            <Icon className={`w-5 h-5 ${active ? color : ""}`} />
+            <Icon className={`w-6 h-6 transition-colors ${active ? color : "text-slate-500"}`} />
             {label}
           </button>
         );
@@ -72,7 +73,6 @@ function RoleSelector({
 
 // ─── Sayfa ────────────────────────────────────────────────────────────────────
 
-// Discriminated union'dan güvenli fieldErrors erişimi
 function getFieldErrors(state: AuthResult | null) {
   if (state && !state.success) return state.fieldErrors;
   return undefined;
@@ -86,190 +86,222 @@ export default function RegisterPage() {
   const [role, setRole] = useState("STUDENT");
 
   return (
-    <div className="relative min-h-screen bg-edu-navy flex items-center justify-center p-4 overflow-hidden">
-      {/* Arka plan neon parlamalar */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-1/3 -right-1/4 w-2/3 h-2/3 rounded-full bg-edu-cyan/10 blur-[140px]" />
-        <div className="absolute -bottom-1/3 -left-1/4 w-2/3 h-2/3 rounded-full bg-edu-orange/10 blur-[140px]" />
+    <div className="relative min-h-screen bg-slate-950 flex flex-col md:flex-row-reverse overflow-hidden selection:bg-orange-500/30">
+      
+      {/* ─── SAĞ SÜTUN (BRANDING) ─── */}
+      <div className="relative hidden md:flex md:w-1/2 lg:w-[45%] items-center justify-center p-12 overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 border-l border-white/5">
+        <div className="absolute top-[-20%] right-[-20%] w-[80%] h-[80%] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-orange-900/30 via-slate-900/0 to-transparent opacity-70" />
+        <div className="absolute bottom-[-20%] left-[-20%] w-[80%] h-[80%] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-cyan-900/20 via-slate-900/0 to-transparent opacity-70" />
+        
+        <motion.div 
+          initial={{ opacity: 0, x: 40 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8, type: "spring", bounce: 0.4 }}
+          className="relative z-10 max-w-lg text-right flex flex-col items-end"
+        >
+          <Link href="/" className="flex items-center gap-4 mb-8 flex-row-reverse group/logo cursor-pointer w-fit">
+            <div className="relative">
+              <div className="absolute inset-0 bg-orange-400 blur-xl opacity-40 rounded-full group-hover/logo:opacity-60 transition-opacity" />
+              <div className="relative bg-white/10 border border-white/20 rounded-2xl p-4">
+                <GraduationCap className="w-10 h-10 text-orange-400" />
+              </div>
+            </div>
+            <h1 className="text-4xl lg:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-l from-white to-slate-400 tracking-tighter">
+              Fenz <span className="text-transparent bg-clip-text bg-gradient-to-l from-orange-400 to-red-500 ">Akademi</span>
+            </h1>
+          </Link>
+          <p className="text-xl text-slate-300 font-medium leading-relaxed mb-6">
+            Eğitim dünyasına yeni bir adım at. Ücretsiz hesabını oluştur, potansiyelini keşfet.
+          </p>
+          <div className="flex items-center gap-3 text-orange-400 font-semibold bg-orange-950/30 border border-orange-500/20 px-5 py-3 rounded-2xl w-fit">
+            <span>Hemen Başla</span>
+            <Sparkles className="w-5 h-5" />
+          </div>
+        </motion.div>
       </div>
 
-      {/* Form kartı */}
-      <motion.div
-        initial={{ y: 48, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ type: "spring", stiffness: 80, damping: 16 }}
-        className="relative w-full max-w-md my-8"
-      >
-        <div className="glass rounded-3xl p-8 md:p-10 shadow-2xl shadow-black/40 border border-white/10">
+      {/* ─── SOL SÜTUN (FORM) ─── */}
+      <div className="relative flex-1 flex items-center justify-center p-6 md:p-12 bg-slate-950 overflow-y-auto min-h-screen">
+        {/* Mobil Arka plan dekorasyon */}
+        <div className="md:hidden absolute top-0 left-0 w-[80vw] h-[80vh] bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-orange-900/30 via-slate-900/0 to-transparent opacity-60 pointer-events-none" />
 
-          {/* Logo & başlık */}
-          <div className="flex flex-col items-center mb-8 text-center">
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: "spring", bounce: 0.45, delay: 0.15 }}
-              className="relative mb-4"
-            >
-              <div className="absolute inset-0 bg-edu-orange blur-xl opacity-30 rounded-full" />
-              <div className="relative bg-edu-navy border border-edu-orange/30 rounded-2xl p-3">
-                <GraduationCap className="w-10 h-10 text-edu-orange" />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="relative w-full max-w-md my-8"
+        >
+          <div className="bg-white/[0.03] rounded-[2rem] p-8 md:p-10 border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
+            
+            <Link href="/" className="md:hidden flex flex-col items-center mb-8 cursor-pointer group/logo">
+              <div className="relative bg-white/10 border border-white/20 rounded-2xl p-3 mb-4">
+                <div className="absolute inset-0 bg-orange-400 blur-xl opacity-0 group-hover/logo:opacity-40 transition-opacity rounded-full" />
+                <GraduationCap className="w-8 h-8 text-orange-400 relative z-10" />
               </div>
-            </motion.div>
-            <h1 className="text-2xl font-black text-white tracking-tight">
-              Fenz <span className="text-edu-cyan">Akademi</span>
-            </h1>
-            <p className="text-slate-400 text-sm mt-1">Ücretsiz hesap oluştur, hemen başla</p>
-          </div>
-
-          {/* Genel hata bildirimi */}
-          {state && !state.success && !state.fieldErrors && (
-            <motion.div
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-2 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3 mb-6"
-            >
-              <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
-              <p className="text-red-400 text-sm">{state.error}</p>
-            </motion.div>
-          )}
-
-          {/* Form */}
-          <form action={formAction} className="space-y-5">
-
-            {/* Gizli rol input'u (state-driven) */}
-            <input type="hidden" name="role" value={role} />
-
-            {/* Ad */}
-            <div className="space-y-1.5">
-              <Label htmlFor="name" className="text-slate-300 text-sm font-medium">
-                Ad Soyad
-              </Label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <Input
-                  id="name"
-                  name="name"
-                  type="text"
-                  placeholder="Adınız Soyadınız"
-                  autoComplete="name"
-                  className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:border-edu-cyan focus:ring-edu-cyan/20 rounded-xl h-11"
-                />
-              </div>
-              <FieldError errors={getFieldErrors(state)?.name} />
-            </div>
-
-            {/* E-posta */}
-            <div className="space-y-1.5">
-              <Label htmlFor="email" className="text-slate-300 text-sm font-medium">
-                E-posta
-              </Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  placeholder="ornek@mail.com"
-                  autoComplete="email"
-                  className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:border-edu-cyan focus:ring-edu-cyan/20 rounded-xl h-11"
-                />
-              </div>
-              <FieldError errors={getFieldErrors(state)?.email} />
-            </div>
-
-            {/* Şifre */}
-            <div className="space-y-1.5">
-              <Label htmlFor="password" className="text-slate-300 text-sm font-medium">
-                Şifre
-              </Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  placeholder="En az 8 karakter, büyük harf ve rakam"
-                  autoComplete="new-password"
-                  className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:border-edu-cyan focus:ring-edu-cyan/20 rounded-xl h-11"
-                />
-              </div>
-              <FieldError errors={getFieldErrors(state)?.password} />
-            </div>
-
-            {/* Rol Seçimi */}
-            <div className="space-y-1.5">
-              <Label className="text-slate-300 text-sm font-medium">Rolünüz</Label>
-              <RoleSelector selected={role} onChange={setRole} />
-              <FieldError errors={getFieldErrors(state)?.role} />
-            </div>
-
-            {/* Sınıf Seviyesi (Sadece Öğrenci seçiliyse) */}
-            <AnimatePresence>
-              {role === "STUDENT" && (
-                <motion.div
-                  key="classLevel"
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="overflow-hidden"
-                >
-                  <div className="space-y-1.5 pt-1">
-                    <Label htmlFor="classLevel" className="text-slate-300 text-sm font-medium">
-                      Sınıf Seviyesi
-                    </Label>
-                    <div className="relative">
-                      <select
-                        id="classLevel"
-                        name="classLevel"
-                        defaultValue=""
-                        className="w-full h-11 pl-4 pr-10 rounded-xl bg-white/5 border border-white/10 text-white focus:border-edu-cyan focus:outline-none appearance-none text-sm"
-                      >
-                        <option value="" disabled className="bg-edu-navy">
-                          Sınıf seçiniz...
-                        </option>
-                        <option value="5" className="bg-edu-navy">5. Sınıf</option>
-                        <option value="6" className="bg-edu-navy">6. Sınıf</option>
-                        <option value="7" className="bg-edu-navy">7. Sınıf</option>
-                        <option value="8" className="bg-edu-navy">8. Sınıf</option>
-                      </select>
-                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                    </div>
-                    <FieldError errors={getFieldErrors(state)?.classLevel} />
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Kayıt Ol butonu */}
-            <Button
-              type="submit"
-              disabled={isPending}
-              className="w-full h-11 rounded-xl font-bold text-base bg-edu-cyan hover:bg-edu-cyan-dark text-edu-navy shadow-lg shadow-edu-cyan/20 hover:shadow-edu-cyan/40 transition-all hover:-translate-y-0.5 disabled:opacity-60 disabled:translate-y-0 mt-2"
-            >
-              {isPending ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Hesap oluşturuluyor...
-                </>
-              ) : (
-                "Ücretsiz Kayıt Ol 🚀"
-              )}
-            </Button>
-          </form>
-
-          {/* Giriş linki */}
-          <p className="text-center text-slate-400 text-sm mt-6">
-            Zaten hesabın var mı?{" "}
-            <Link
-              href="/login"
-              className="text-edu-orange font-semibold hover:text-edu-orange-light transition-colors"
-            >
-              Giriş Yap
+              <h2 className="text-3xl font-black text-white">Fenz <span className="text-orange-400">Akademi</span></h2>
             </Link>
-          </p>
-        </div>
-      </motion.div>
+
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-white mb-2">Kayıt Ol 🚀</h2>
+              <p className="text-slate-400 text-sm">Ücretsiz hesap oluştur, hemen başla.</p>
+            </div>
+
+            {/* Genel hata bildirimi */}
+            {state && !state.success && !state.fieldErrors && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                className="flex items-center gap-3 bg-red-500/10 border border-red-500/20 rounded-2xl px-4 py-3 mb-6"
+              >
+                <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
+                <p className="text-red-400 text-sm font-medium">{state.error}</p>
+              </motion.div>
+            )}
+
+            <form action={formAction} className="space-y-6">
+              <input type="hidden" name="role" value={role} />
+
+              {/* Ad */}
+              <div className="space-y-2">
+                <Label htmlFor="name" className="text-slate-300 text-sm font-semibold ml-1">Ad Soyad</Label>
+                <div className="relative group">
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-cyan-400 transition-colors" />
+                  <Input
+                    id="name"
+                    name="name"
+                    type="text"
+                    placeholder="Adınız Soyadınız"
+                    autoComplete="name"
+                    className="pl-12 bg-black/20 border-white/10 text-white placeholder:text-slate-600 focus:border-cyan-500/50 focus:ring-cyan-500/20 rounded-2xl h-14 transition-all"
+                  />
+                </div>
+                <FieldError errors={getFieldErrors(state)?.name} />
+              </div>
+
+              {/* E-posta */}
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-slate-300 text-sm font-semibold ml-1">E-posta</Label>
+                <div className="relative group">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-cyan-400 transition-colors" />
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="ornek@mail.com"
+                    autoComplete="email"
+                    className="pl-12 bg-black/20 border-white/10 text-white placeholder:text-slate-600 focus:border-cyan-500/50 focus:ring-cyan-500/20 rounded-2xl h-14 transition-all"
+                  />
+                </div>
+                <FieldError errors={getFieldErrors(state)?.email} />
+              </div>
+
+              {/* Şifre */}
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-slate-300 text-sm font-semibold ml-1">Şifre</Label>
+                <div className="relative group">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-cyan-400 transition-colors" />
+                  <Input
+                    id="password"
+                    name="password"
+                    type="password"
+                    placeholder="En az 8 karakter, büyük harf ve rakam"
+                    autoComplete="new-password"
+                    className="pl-12 bg-black/20 border-white/10 text-white placeholder:text-slate-600 focus:border-cyan-500/50 focus:ring-cyan-500/20 rounded-2xl h-14 transition-all"
+                  />
+                </div>
+                <FieldError errors={getFieldErrors(state)?.password} />
+              </div>
+
+              {/* Şifre Tekrarı */}
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword" className="text-slate-300 text-sm font-semibold ml-1">Şifre Tekrarı</Label>
+                <div className="relative group">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-cyan-400 transition-colors" />
+                  <Input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type="password"
+                    placeholder="Şifrenizi tekrar girin"
+                    autoComplete="new-password"
+                    className="pl-12 bg-black/20 border-white/10 text-white placeholder:text-slate-600 focus:border-cyan-500/50 focus:ring-cyan-500/20 rounded-2xl h-14 transition-all"
+                  />
+                </div>
+                <FieldError errors={getFieldErrors(state)?.confirmPassword} />
+              </div>
+
+              {/* Rol Seçimi */}
+              <div className="space-y-2 pt-2">
+                <Label className="text-slate-300 text-sm font-semibold ml-1">Rolünüz</Label>
+                <RoleSelector selected={role} onChange={setRole} />
+                <FieldError errors={getFieldErrors(state)?.role} />
+              </div>
+
+              {/* Sınıf Seviyesi (Sadece Öğrenci seçiliyse) */}
+              <AnimatePresence>
+                {role === "STUDENT" && (
+                  <motion.div
+                    key="classLevel"
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="space-y-2 pt-4">
+                      <Label htmlFor="classLevel" className="text-slate-300 text-sm font-semibold ml-1">
+                        Sınıf Seviyesi
+                      </Label>
+                      <div className="relative group">
+                        <select
+                          id="classLevel"
+                          name="classLevel"
+                          defaultValue=""
+                          className="w-full h-14 pl-4 pr-12 rounded-2xl bg-black/20 border border-white/10 text-white focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 focus:outline-none appearance-none text-base transition-all group-hover:border-white/20"
+                        >
+                          <option value="" disabled className="bg-slate-900">Sınıf seçiniz...</option>
+                          <option value="5" className="bg-slate-900">5. Sınıf</option>
+                          <option value="6" className="bg-slate-900">6. Sınıf</option>
+                          <option value="7" className="bg-slate-900">7. Sınıf</option>
+                          <option value="8" className="bg-slate-900">8. Sınıf</option>
+                        </select>
+                        <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 pointer-events-none" />
+                      </div>
+                      <FieldError errors={getFieldErrors(state)?.classLevel} />
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Kayıt Ol butonu */}
+              <Button
+                type="submit"
+                disabled={isPending}
+                className="w-full h-14 rounded-2xl font-bold text-base bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-cyan-400 text-slate-950 shadow-[0_0_20px_rgba(34,211,238,0.3)] hover:shadow-[0_0_25px_rgba(34,211,238,0.5)] transition-all duration-300 hover:-translate-y-1 disabled:opacity-70 disabled:translate-y-0 mt-4 group"
+              >
+                {isPending ? (
+                  <>
+                    <Loader2 className="w-5 h-5 mr-3 animate-spin" />
+                    Hesap oluşturuluyor...
+                  </>
+                ) : (
+                  <>
+                    Ücretsiz Kayıt Ol
+                    <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </>
+                )}
+              </Button>
+            </form>
+
+            {/* Giriş linki */}
+            <p className="text-center text-slate-400 text-sm mt-8">
+              Zaten hesabın var mı?{" "}
+              <Link href="/login" className="text-orange-400 font-bold hover:text-orange-300 transition-colors ">
+                Giriş Yap
+              </Link>
+            </p>
+          </div>
+        </motion.div>
+      </div>
     </div>
   );
 }

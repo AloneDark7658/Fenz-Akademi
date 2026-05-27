@@ -64,7 +64,7 @@ export function BadgeCollection({ allBadges, ownedBadgeIds }: BadgeCollectionPro
 
             {/* Rozet İkonu */}
             <div
-              className={`w-16 h-16 rounded-full flex items-center justify-center text-3xl mb-3 drop-shadow-md ${
+              className={`w-16 h-16 rounded-full flex items-center justify-center text-3xl mb-3 ${
                 isOwned
                   ? "bg-gradient-to-br from-edu-cyan/20 to-edu-navy border border-edu-cyan/40"
                   : "bg-slate-800/50 border border-slate-700/50"

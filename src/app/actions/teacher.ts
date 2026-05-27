@@ -149,9 +149,9 @@ const addCourseSchema = z.object({
 const addLessonSchema = z.object({
   courseId: z.string().min(1, "Kurs seçiniz"),
   title: z.string().min(3, "Ders adı en az 3 karakter olmalıdır").max(200),
-  videoUrl: z
+  bunnyVideoId: z
     .string()
-    .url("Geçerli bir video URL'si giriniz")
+    .min(1, "Lütfen bir video yükleyin")
     .optional()
     .or(z.literal("")),
   description: z.string().max(500).optional(),
@@ -231,7 +231,7 @@ export async function addLessonAction(
   const raw = {
     courseId: formData.get("courseId"),
     title: formData.get("title"),
-    videoUrl: formData.get("videoUrl") || undefined,
+    bunnyVideoId: formData.get("bunnyVideoId") || undefined,
     description: formData.get("description") || undefined,
     duration: formData.get("duration") || null,
   };
@@ -260,9 +260,7 @@ export async function addLessonAction(
     data: {
       courseId: validation.data.courseId,
       title: validation.data.title,
-      // cloudflareStreamUrl alanına şimdilik videoUrl yazıyoruz;
-      // ileride Bunny.net/Cloudflare Stream ID'ye geçilecek
-      cloudflareStreamUrl: validation.data.videoUrl || null,
+      bunnyVideoId: validation.data.bunnyVideoId || null,
       duration: validation.data.duration ?? null,
       orderIndex: course._count.videoLessons + 1,
     },

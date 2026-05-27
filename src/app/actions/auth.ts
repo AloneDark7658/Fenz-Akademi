@@ -40,6 +40,10 @@ const signUpSchema = z.object({
     .max(8)
     .optional()
     .nullable(),
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Şifreler eşleşmiyor",
+  path: ["confirmPassword"],
 });
 
 const signInSchema = z.object({
@@ -83,6 +87,7 @@ export async function signUpAction(
     name: formData.get("name"),
     email: formData.get("email"),
     password: formData.get("password"),
+    confirmPassword: formData.get("confirmPassword"),
     role: formData.get("role"),
     classLevel: formData.get("classLevel") || null,
   };

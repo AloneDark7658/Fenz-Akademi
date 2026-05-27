@@ -6,11 +6,11 @@ export default function ParentLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-[#0b1120]">
+    <div className="flex h-[100dvh] bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 overflow-hidden selection:bg-cyan-500/30">
       <ParentSidebar />
-      <div className="pl-64 flex flex-col min-h-screen">
-        <main className="flex-1 p-8">
-          <div className="max-w-7xl mx-auto">{children}</div>
+      <div className="flex flex-col flex-1 min-w-0 overflow-hidden pb-16 md:pb-0">
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
+          <div className="max-w-[1600px] w-full mx-auto">{children}</div>
         </main>
       </div>
     </div>

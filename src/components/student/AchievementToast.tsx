@@ -64,7 +64,7 @@ export function AchievementToast({ badges }: AchievementToastProps) {
             transition={{ type: "spring", delay: idx * 0.4, duration: 0.5 }}
             className="glass rounded-2xl p-4 border border-edu-cyan/40 shadow-[0_0_20px_rgba(6,182,212,0.3)] flex items-center gap-4 bg-[#0b1120]/90 pointer-events-auto"
           >
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-edu-cyan/20 to-edu-orange/20 border border-edu-cyan/30 flex items-center justify-center text-2xl drop-shadow-md">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-edu-cyan/20 to-edu-orange/20 border border-edu-cyan/30 flex items-center justify-center text-2xl ">
               {badge.icon}
             </div>
             <div>

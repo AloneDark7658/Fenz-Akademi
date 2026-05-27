@@ -155,7 +155,7 @@ export function VideoPlayer({ videoUrl, title, onProgress }: VideoPlayerProps) {
               <motion.div
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                className="w-16 h-16 rounded-2xl bg-edu-cyan/20 border-2 border-edu-cyan/50 backdrop-blur-sm flex items-center justify-center"
+                className="w-16 h-16 rounded-2xl bg-edu-cyan/20 border-2 border-edu-cyan/50 flex items-center justify-center"
               >
                 <Play className="w-7 h-7 text-edu-cyan fill-edu-cyan ml-1" />
               </motion.div>

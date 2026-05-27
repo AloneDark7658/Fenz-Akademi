@@ -28,7 +28,7 @@ export async function TeacherTopbar() {
     .toUpperCase();
 
   return (
-    <header className="h-16 flex items-center justify-between px-6 border-b border-white/10 bg-edu-navy/80 backdrop-blur-md flex-shrink-0">
+    <header className="h-16 flex items-center justify-between px-6 border-b border-white/10 bg-edu-navy/80 flex-shrink-0">
       {/* Arama */}
       <div className="relative max-w-xs w-full hidden md:block">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />

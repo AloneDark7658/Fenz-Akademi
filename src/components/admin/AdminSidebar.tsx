@@ -5,19 +5,18 @@ import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   LayoutDashboard,
-  LineChart,
+  Users,
   LogOut,
-  GraduationCap,
+  ShieldAlert,
 } from "lucide-react";
 import { signOutAction } from "@/app/actions/auth";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
-  { href: "/parent", label: "Genel Bakış", icon: LayoutDashboard, exact: true },
-  { href: "/parent/analytics", label: "Detaylı Analiz", icon: LineChart },
+  { href: "/admin", label: "Genel Bakış", icon: LayoutDashboard, exact: true },
 ];
 
-export function ParentSidebar() {
+export function AdminSidebar() {
   const pathname = usePathname();
 
   function isActive(item: (typeof NAV_ITEMS)[number]) {
@@ -30,12 +29,12 @@ export function ParentSidebar() {
       {/* ─── DESKTOP SIDEBAR ─── */}
       <aside className="hidden md:flex flex-col h-full w-64 bg-slate-950/40 border-r border-white/10 z-50">
         <div className="flex items-center gap-3 px-6 py-6 border-b border-white/5">
-          <div className="bg-purple-500/10 border border-purple-500/30 rounded-xl p-2 shadow-[0_0_15px_rgba(168,85,247,0.15)]">
-            <GraduationCap className="w-5 h-5 text-purple-400" />
+          <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-2 shadow-[0_0_15px_rgba(239,68,68,0.15)]">
+            <ShieldAlert className="w-5 h-5 text-red-500" />
           </div>
           <div>
             <p className="font-black text-white text-base leading-tight tracking-wide">Fenz Akademi</p>
-            <p className="text-purple-400 text-xs font-semibold">Veli Paneli</p>
+            <p className="text-red-500 text-xs font-semibold">Komuta Merkezi</p>
           </div>
         </div>
 
@@ -50,12 +49,12 @@ export function ParentSidebar() {
                 )}>
                   {active && (
                     <motion.span
-                      layoutId="parent-sidebar-desktop"
-                      className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-indigo-500/20 border border-purple-500/30 rounded-2xl"
+                      layoutId="admin-sidebar-desktop"
+                      className="absolute inset-0 bg-gradient-to-r from-red-500/20 to-rose-500/20 border border-red-500/30 rounded-2xl"
                       transition={{ type: "spring", stiffness: 300, damping: 30 }}
                     />
                   )}
-                  <item.icon className={cn("relative w-5 h-5", active ? "text-purple-400 " : "")} />
+                  <item.icon className={cn("relative w-5 h-5", active ? "text-red-500 " : "")} />
                   <span className="relative">{item.label}</span>
                 </span>
               </Link>
@@ -82,22 +81,21 @@ export function ParentSidebar() {
               <Link key={item.href} href={item.href} className="relative flex-1 flex flex-col items-center justify-center p-2">
                 {active && (
                   <motion.span
-                    layoutId="parent-mobile-nav"
-                    className="absolute inset-0 bg-purple-500/10 rounded-xl"
+                    layoutId="admin-mobile-nav"
+                    className="absolute inset-0 bg-red-500/10 rounded-xl"
                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
                   />
                 )}
-                <item.icon className={cn("relative w-5 h-5 mb-1", active ? "text-purple-400 " : "text-slate-400")} />
-                <span className={cn("relative text-[10px] font-semibold", active ? "text-purple-400" : "text-slate-400")}>
+                <item.icon className={cn("relative w-5 h-5 mb-1", active ? "text-red-500 " : "text-slate-400")} />
+                <span className={cn("relative text-[10px] font-semibold", active ? "text-red-500" : "text-slate-400")}>
                   {item.label}
                 </span>
               </Link>
             );
           })}
           
-          {/* Mobil Çıkış Butonu */}
           <form action={signOutAction} className="flex-1 flex">
-            <button type="submit" className="relative flex-1 flex flex-col items-center justify-center p-2 text-slate-400 hover:text-red-400 transition-colors">
+            <button type="submit" className="relative flex-1 flex flex-col items-center justify-center p-2 text-slate-400 hover:text-red-500 transition-colors">
               <LogOut className="relative w-5 h-5 mb-1" />
               <span className="relative text-[10px] font-semibold w-full text-center">Çıkış</span>
             </button>

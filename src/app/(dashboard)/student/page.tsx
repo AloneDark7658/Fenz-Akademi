@@ -7,6 +7,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { BadgeCollection } from "@/components/student/BadgeCollection";
+import { InviteCodeCard } from "@/components/student/InviteCodeCard";
+import { WeeklyActivityChart } from "@/components/analytics/WeeklyActivityChart";
+import { SubjectPerformanceChart } from "@/components/analytics/SubjectPerformanceChart";
 import {
   Flame,
   Star,
@@ -48,6 +51,7 @@ export default async function StudentDashboardPage() {
         points: true,
         streak: true,
         classLevel: true,
+        inviteCode: true,
         quizResults: { select: { score: true, correctCount: true, wrongCount: true } },
         progresses: {
           where: { watchPercentage: { gt: 0 } },
@@ -117,23 +121,23 @@ export default async function StudentDashboardPage() {
   const firstName = dbUser.name.split(" ")[0];
 
   return (
-    <div className="min-h-screen bg-[#0b1120]">
-      {/* Arka plan dekorasyon */}
-      <div className="pointer-events-none fixed inset-0 overflow-hidden z-0">
-        <div className="absolute -top-1/4 -right-1/4 w-1/2 h-1/2 rounded-full bg-edu-cyan/5 blur-[120px]" />
-        <div className="absolute -bottom-1/4 -left-1/4 w-1/2 h-1/2 rounded-full bg-edu-orange/5 blur-[120px]" />
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 selection:bg-edu-cyan/30">
+      {/* Arka plan dekorasyon (Performans Optimizasyonlu) */}
+      <div className="pointer-events-none fixed inset-0 z-0">
+        <div className="absolute top-0 right-0 w-[80vw] h-[80vh] bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-cyan-900/30 via-slate-900/0 to-transparent opacity-60" />
+        <div className="absolute bottom-0 left-0 w-[80vw] h-[80vh] bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-orange-900/20 via-slate-900/0 to-transparent opacity-60" />
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 py-8 space-y-10">
+      <div className="relative z-10 max-w-[1600px] w-full mx-auto px-4 md:px-8 py-10 space-y-12">
 
         {/* ── Hero Karşılama ── */}
-        <section className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <section className="flex flex-col md:flex-row md:items-center justify-between gap-8">
           <div>
-            <p className="text-slate-400 text-sm font-medium mb-1">
+            <p className="text-slate-400 text-sm font-medium mb-2 tracking-wide uppercase">
               {new Date().toLocaleDateString("tr-TR", { weekday: "long", day: "numeric", month: "long" })}
             </p>
-            <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight">
-              Merhaba, <span className="text-edu-cyan">{firstName}</span>! 👋
+            <h1 className="text-5xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-300 tracking-tight pb-2">
+              Merhaba, <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 ">{firstName}</span>! 👋
             </h1>
             <p className="text-slate-400 mt-2">
               Öğrenmeye kaldığın yerden devam et. {allLessons} ders seni bekliyor.
@@ -141,7 +145,7 @@ export default async function StudentDashboardPage() {
           </div>
 
           {/* Seviye Rozeti */}
-          <div className="flex-shrink-0 glass rounded-2xl px-6 py-4 border border-white/10 flex items-center gap-4">
+          <div className="flex-shrink-0 bg-white/5 rounded-3xl px-8 py-5 border border-white/10 shadow-lg hover:shadow-[0_0_20px_rgba(56,189,248,0.2)] transition-all duration-300 flex items-center gap-5">
             <div className="relative">
               <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-edu-cyan to-edu-navy border border-edu-cyan/30 flex items-center justify-center text-2xl font-black text-white">
                 {level}
@@ -195,17 +199,30 @@ export default async function StudentDashboardPage() {
               sub: "Video ders",
             },
           ].map(({ label, value, icon: Icon, color, bg, sub }) => (
-            <Card key={label} className={`border ${bg} bg-transparent hover:scale-[1.02] transition-transform`}>
-              <CardContent className="p-5">
-                <div className="flex items-center justify-between mb-3">
-                  <p className="text-slate-400 text-xs font-medium">{label}</p>
-                  <Icon className={`w-4 h-4 ${color}`} />
+            <Card key={label} className={`bg-white/5 border border-white/10 rounded-2xl hover:shadow-[0_0_20px_rgba(56,189,248,0.15)] hover:border-white/20 hover:scale-[1.02] transition-all duration-300`}>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-slate-400 text-sm font-semibold tracking-wide uppercase">{label}</p>
+                  <div className={`p-2 rounded-xl ${bg.split(" ")[0]} border border-white/5`}>
+                    <Icon className={`w-5 h-5 ${color}`} />
+                  </div>
                 </div>
-                <p className={`text-3xl font-black ${color}`}>{value}</p>
+                <p className={`text-4xl font-black ${color} `}>{value}</p>
                 <p className="text-xs text-slate-500 mt-1">{sub}</p>
               </CardContent>
             </Card>
           ))}
+        </section>
+
+        {/* ── Analitik Raporlar (Grafikler) ── */}
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <WeeklyActivityChart />
+          <SubjectPerformanceChart />
+        </section>
+
+        {/* ── Davet Kodu & Eşleştirme ── */}
+        <section>
+          <InviteCodeCard initialCode={dbUser.inviteCode} />
         </section>
 
         {/* ── Başarılarım / Koleksiyonum ── */}
@@ -231,25 +248,25 @@ export default async function StudentDashboardPage() {
                 Kaldığın Yerden Devam Et
               </h2>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {inProgress.map((prog) => (
                 <Link key={prog.id} href={`/dashboard/lessons/${prog.lesson.id}`}>
-                  <div className="group glass rounded-2xl p-5 border border-white/10 hover:border-edu-cyan/30 hover:shadow-lg hover:shadow-edu-cyan/10 transition-all hover:-translate-y-1 cursor-pointer h-full flex flex-col">
-                    <p className="text-xs text-edu-cyan/80 font-medium mb-1">{prog.lesson.course.title}</p>
-                    <h3 className="text-white font-semibold text-sm leading-snug line-clamp-2 flex-1">
+                  <div className="group bg-white/5 rounded-3xl p-6 border border-white/10 hover:border-cyan-500/40 hover:shadow-[0_0_25px_rgba(6,182,212,0.2)] transition-all duration-300 hover:-translate-y-1.5 cursor-pointer h-full flex flex-col">
+                    <p className="text-xs text-cyan-400 font-bold tracking-wider uppercase mb-2">{prog.lesson.course.title}</p>
+                    <h3 className="text-white font-bold text-base leading-snug line-clamp-2 flex-1 group-hover:text-cyan-50 transition-colors">
                       {prog.lesson.title}
                     </h3>
-                    <div className="mt-4 space-y-2">
-                      <div className="flex items-center justify-between text-xs text-slate-400">
+                    <div className="mt-5 space-y-2">
+                      <div className="flex items-center justify-between text-xs text-slate-400 font-medium">
                         <span>İlerleme</span>
-                        <span className="text-edu-cyan font-bold">%{Math.round(prog.watchPercentage)}</span>
+                        <span className="text-cyan-400 font-black ">%{Math.round(prog.watchPercentage)}</span>
                       </div>
                       <Progress
                         value={prog.watchPercentage}
-                        className="h-1.5 bg-white/10 [&>div]:bg-edu-cyan"
+                        className="h-2 bg-black/40 [&>div]:bg-gradient-to-r [&>div]:from-cyan-500 [&>div]:to-blue-500"
                       />
                     </div>
-                    <div className="flex items-center justify-between mt-3">
+                    <div className="flex items-center justify-between mt-5 pt-4 border-t border-white/5">
                       <div className="flex items-center gap-2 text-xs text-slate-500">
                         {prog.lesson.duration && (
                           <span className="flex items-center gap-1">
@@ -292,18 +309,18 @@ export default async function StudentDashboardPage() {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {recommendedLessons.map((lesson, i) => (
                 <Link key={lesson.id} href={`/dashboard/lessons/${lesson.id}`}>
-                  <div className="group relative glass rounded-2xl border border-white/10 hover:border-edu-cyan/40 hover:shadow-xl hover:shadow-edu-cyan/10 transition-all hover:-translate-y-1.5 cursor-pointer overflow-hidden h-full flex flex-col">
+                  <div className="group relative bg-white/5 rounded-3xl border border-white/10 hover:border-cyan-500/40 hover:shadow-[0_0_25px_rgba(6,182,212,0.2)] transition-all duration-300 hover:-translate-y-2 cursor-pointer overflow-hidden h-full flex flex-col">
                     {/* Renk şeridi üstte */}
                     <div
-                      className="h-1 w-full"
+                      className="h-1.5 w-full opacity-80"
                       style={{
-                        background: `hsl(${(i * 47) % 360}, 70%, 60%)`,
+                        background: `linear-gradient(to right, hsl(${(i * 47) % 360}, 70%, 60%), hsl(${((i * 47) + 30) % 360}, 70%, 60%))`,
                       }}
                     />
-                    <div className="p-5 flex flex-col flex-1">
+                    <div className="p-6 flex flex-col flex-1">
                       {/* Sınıf rozeti */}
                       <div className="flex items-center justify-between mb-3">
                         <Badge
@@ -320,12 +337,12 @@ export default async function StudentDashboardPage() {
                         )}
                       </div>
 
-                      <p className="text-xs text-slate-400 mb-1">{lesson.course.title}</p>
-                      <h3 className="text-white font-semibold text-sm leading-snug line-clamp-2 flex-1">
+                      <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-2">{lesson.course.title}</p>
+                      <h3 className="text-white font-bold text-base leading-snug line-clamp-2 flex-1 group-hover:text-cyan-50 transition-colors">
                         {lesson.title}
                       </h3>
 
-                      <div className="flex items-center justify-between mt-4">
+                      <div className="flex items-center justify-between mt-6 pt-4 border-t border-white/5">
                         {lesson.duration ? (
                           <span className="flex items-center gap-1 text-xs text-slate-500">
                             <Clock className="w-3 h-3" />
