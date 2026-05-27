@@ -2,7 +2,10 @@
 // Fenz Akademi — Genel Tip Tanımları
 // ============================================================================
 
-import type { Role, QuestionStatus } from "@prisma/client";
+// Prisma enum types (defined locally to avoid @prisma/client export issues with Prisma v5)
+export type Role = "STUDENT" | "TEACHER" | "PARENT" | "ADMIN";
+export type QuestionStatus = "DRAFT" | "PUBLISHED";
+
 
 // ─── API Response Tipleri ───────────────────────────────────────────────────
 
@@ -63,6 +66,5 @@ export interface CourseWithLessons {
   }[];
 }
 
-// ─── Re-export Prisma Enum'ları ─────────────────────────────────────────────
+// Role ve QuestionStatus yukarıda tanımlandı, ayrıca re-export'a gerek yok.
 
-export type { Role, QuestionStatus };

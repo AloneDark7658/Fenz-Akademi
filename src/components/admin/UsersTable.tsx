@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Role } from "@prisma/client";
+import { type Role } from "@/types";
+
 import { updateUserRole } from "@/app/actions/admin";
 import { Search, ShieldAlert, CheckCircle2, User as UserIcon, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";

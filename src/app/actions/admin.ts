@@ -2,8 +2,9 @@
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
-import { Role } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import { type Role } from "@/types";
+
 
 /**
  * Kullanıcı rolünü günceller.
