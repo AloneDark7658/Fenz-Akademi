@@ -34,7 +34,7 @@ export default async function QuizPage({
 
   // Soruları Client'a uygun (güvenli) formata çevir
   // DİKKAT: correctAnswer burada HARİÇ tutuluyor ki hile yapılamasın.
-  const clientQuestions: ClientQuestion[] = lesson.questions.map((q) => {
+  const clientQuestions: ClientQuestion[] = lesson.questions.map((q: { id: string; content: string; options: unknown }) => {
     // Prisma Json tipini parse etmek veya dönüştürmek
     let optionsArray: string[] = [];
     if (Array.isArray(q.options)) {
@@ -65,7 +65,7 @@ export default async function QuizPage({
         {/* Üst Kısım: Geri Dönüş ve Başlık */}
         <div className="flex items-center justify-between mb-8">
           <Link 
-            href={`/dashboard/lessons/${lessonId}`}
+            href={`/lessons/${lessonId}`}
             className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
