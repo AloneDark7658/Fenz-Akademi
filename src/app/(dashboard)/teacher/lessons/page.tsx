@@ -111,7 +111,7 @@ export default async function TeacherLessonsPage() {
               </div>
             ) : (
               <div className="space-y-4 max-h-[calc(100vh-22rem)] overflow-y-auto pr-1">
-                {courses.map((course) => (
+                {courses.map((course: any) => (
                   <div key={course.id} className="space-y-1">
                     {/* Kurs Başlığı */}
                     <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10">
@@ -149,7 +149,7 @@ export default async function TeacherLessonsPage() {
                       </p>
                     ) : (
                       <div className="pl-4 space-y-1">
-                        {course.videoLessons.map((lesson, index) => (
+                        {course.videoLessons.map((lesson: any, index: number) => (
                           <div
                             key={lesson.id}
                             className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-white/5 transition-colors group"
