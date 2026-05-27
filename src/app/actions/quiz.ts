@@ -98,7 +98,9 @@ export async function submitQuizAction(payload: {
         id: { in: questionIds },
         status: "PUBLISHED",
       },
-      include: {
+      select: {
+        id: true,
+        correctAnswer: true,
         lesson: {
           select: {
             id: true,
