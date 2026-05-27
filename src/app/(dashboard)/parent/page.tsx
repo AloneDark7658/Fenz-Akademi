@@ -84,34 +84,34 @@ export default async function ParentDashboardPage() {
   const oneWeekAgo = new Date();
   oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
   
-  const weeklyQuizzes = student.quizResults.filter(q => q.createdAt >= oneWeekAgo);
-  const weeklyTotalQuestions = weeklyQuizzes.reduce((acc, q) => acc + q.correctCount + q.wrongCount, 0);
-  const weeklyCorrects = weeklyQuizzes.reduce((acc, q) => acc + q.correctCount, 0);
+  const weeklyQuizzes = student.quizResults.filter((q: any) => q.createdAt >= oneWeekAgo);
+  const weeklyTotalQuestions = weeklyQuizzes.reduce((acc: number, q: any) => acc + q.correctCount + q.wrongCount, 0);
+  const weeklyCorrects = weeklyQuizzes.reduce((acc: number, q: any) => acc + q.correctCount, 0);
   const weeklySuccessRate = weeklyTotalQuestions > 0 ? Math.round((weeklyCorrects / weeklyTotalQuestions) * 100) : 0;
 
   const totalSuccessRate = student.quizResults.length > 0 
-    ? Math.round(student.quizResults.reduce((acc, q) => acc + q.score, 0) / student.quizResults.length) 
+    ? Math.round(student.quizResults.reduce((acc: number, q: any) => acc + q.score, 0) / student.quizResults.length) 
     : 0;
 
   // 2. İzlenen Ders Süresi (Tamamlananlar üzerinden)
   const totalWatchedSeconds = student.progresses
-    .filter(p => p.watchPercentage >= 90)
-    .reduce((acc, p) => acc + (p.lesson.duration || 0), 0);
+    .filter((p: any) => p.watchPercentage >= 90)
+    .reduce((acc: number, p: any) => acc + (p.lesson.duration || 0), 0);
   const totalWatchedHours = (totalWatchedSeconds / 3600).toFixed(1);
 
   // 3. Zayıf Noktalar (Son quizlerde yanlış yapılan dersler)
   const weakPoints = student.quizResults
-    .filter(q => q.wrongCount > 0)
-    .map(q => ({
+    .filter((q: any) => q.wrongCount > 0)
+    .map((q: any) => ({
       lessonId: q.lesson.id,
       lessonTitle: q.lesson.title,
       courseTitle: q.lesson.course.title,
       wrongCount: q.wrongCount,
       date: q.createdAt,
     }))
-    .reduce((acc, curr) => {
+    .reduce((acc: any[], curr: any) => {
       // Aynı dersten olan yanlışları birleştir (en son tarihi al)
-      const existing = acc.find(item => item.lessonId === curr.lessonId);
+      const existing = acc.find((item: any) => item.lessonId === curr.lessonId);
       if (existing) {
         existing.wrongCount += curr.wrongCount;
       } else {
@@ -119,14 +119,14 @@ export default async function ParentDashboardPage() {
       }
       return acc;
     }, [] as any[])
-    .sort((a, b) => b.wrongCount - a.wrongCount)
+    .sort((a: any, b: any) => b.wrongCount - a.wrongCount)
     .slice(0, 5); // En çok yanlış yapılan 5 konu
 
   // 4. Grafik Verisi (Son 7 quiz skoru)
   const chartData = [...student.quizResults]
     .reverse()
     .slice(-7)
-    .map((q, i) => ({
+    .map((q: any, i: number) => ({
       date: q.createdAt.toLocaleDateString("tr-TR", { day: "numeric", month: "short" }),
       score: q.score,
     }));
