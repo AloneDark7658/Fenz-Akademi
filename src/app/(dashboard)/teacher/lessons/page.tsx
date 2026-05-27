@@ -41,16 +41,16 @@ export default async function TeacherLessonsPage() {
     },
   });
 
-  const courseOptions = courses.map((c) => ({
+  const courseOptions = courses.map((c: any) => ({
     id: c.id,
     title: c.title,
     gradeLevel: c.gradeLevel,
   }));
 
-  const totalLessons = courses.reduce((acc, c) => acc + c.videoLessons.length, 0);
+  const totalLessons = courses.reduce((acc: number, c: any) => acc + c.videoLessons.length, 0);
   const totalQuestions = courses.reduce(
-    (acc, c) =>
-      acc + c.videoLessons.reduce((a, l) => a + l._count.questions, 0),
+    (acc: number, c: any) =>
+      acc + c.videoLessons.reduce((a: number, l: any) => a + l._count.questions, 0),
     0
   );
 
