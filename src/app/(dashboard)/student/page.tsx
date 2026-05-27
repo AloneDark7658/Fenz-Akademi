@@ -112,30 +112,30 @@ export default async function StudentDashboardPage() {
 
   if (!dbUser) redirect("/login");
 
-  const ownedBadgeIds = dbUser.userBadges.map((ub) => ub.badgeId);
+  const ownedBadgeIds = dbUser.userBadges.map((ub: any) => ub.badgeId);
 
   // İstatistik hesapla
   const totalQuizzes = dbUser.quizResults.length;
   const avgScore =
     totalQuizzes > 0
       ? Math.round(
-          dbUser.quizResults.reduce((acc, r) => acc + r.score, 0) / totalQuizzes
+          dbUser.quizResults.reduce((acc: number, r: any) => acc + r.score, 0) / totalQuizzes
         )
       : 0;
   const completedLessons = dbUser.progresses.filter(
-    (p) => p.watchPercentage >= 90
+    (p: any) => p.watchPercentage >= 90
   ).length;
   const xpToNext = 1000 - (dbUser.points % 1000);
   const level = Math.floor(dbUser.points / 1000) + 1;
 
-  const inProgress = dbUser.progresses.filter((p) => p.watchPercentage < 90);
+  const inProgress = dbUser.progresses.filter((p: any) => p.watchPercentage < 90);
   const firstName = dbUser.name.split(" ")[0];
 
   // --- Analitik Grafikler İçin Gerçek Veriler ---
   
   // 1. Konu Bazlı Başarı (Radar Chart)
   const courseScores: Record<string, { totalScore: number; count: number }> = {};
-  dbUser.quizResults.forEach((qr) => {
+  dbUser.quizResults.forEach((qr: any) => {
     const courseTitle = qr.lesson.course.title;
     if (!courseScores[courseTitle]) {
       courseScores[courseTitle] = { totalScore: 0, count: 0 };
@@ -144,7 +144,7 @@ export default async function StudentDashboardPage() {
     courseScores[courseTitle].count += 1;
   });
 
-  let subjectPerformanceData = Object.entries(courseScores).map(([subject, stats]) => ({
+  let subjectPerformanceData = Object.entries(courseScores).map(([subject, stats]: [string, any]) => ({
     subject: subject.length > 12 ? subject.substring(0, 10) + ".." : subject,
     A: Math.round(stats.totalScore / stats.count),
     fullMark: 100
@@ -162,16 +162,16 @@ export default async function StudentDashboardPage() {
   });
   const daysOfWeek = ["Paz", "Pzt", "Sal", "Çar", "Per", "Cum", "Cmt"];
 
-  const weeklyActivityData = last7Days.map((date) => {
+  const weeklyActivityData = last7Days.map((date: Date) => {
     const nextDay = new Date(date);
     nextDay.setDate(nextDay.getDate() + 1);
 
     const quizzesOnDay = dbUser.quizResults.filter(
-      (qr) => qr.createdAt >= date && qr.createdAt < nextDay
+      (qr: any) => qr.createdAt >= date && qr.createdAt < nextDay
     );
 
     const questionCount = quizzesOnDay.reduce(
-      (acc, qr) => acc + qr.correctCount + qr.wrongCount,
+      (acc: number, qr: any) => acc + qr.correctCount + qr.wrongCount,
       0
     );
 
