@@ -310,7 +310,7 @@ export default async function StudentDashboardPage() {
               </h2>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {inProgress.map((prog) => (
+              {inProgress.map((prog: any) => (
                 <Link key={prog.id} href={`/lessons/${prog.lesson.id}`}>
                   <div className="group bg-white/5 rounded-3xl p-6 border border-white/10 hover:border-cyan-500/40 hover:shadow-[0_0_25px_rgba(6,182,212,0.2)] transition-all duration-300 hover:-translate-y-1.5 cursor-pointer h-full flex flex-col">
                     <p className="text-xs text-cyan-400 font-bold tracking-wider uppercase mb-2">{prog.lesson.course.title}</p>
@@ -371,7 +371,7 @@ export default async function StudentDashboardPage() {
             </Card>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {recommendedLessons.map((lesson, i) => (
+              {recommendedLessons.map((lesson: any, i: number) => (
                 <Link key={lesson.id} href={`/lessons/${lesson.id}`}>
                   <div className="group relative bg-white/5 rounded-3xl border border-white/10 hover:border-cyan-500/40 hover:shadow-[0_0_25px_rgba(6,182,212,0.2)] transition-all duration-300 hover:-translate-y-2 cursor-pointer overflow-hidden h-full flex flex-col">
                     {/* Renk şeridi üstte */}
