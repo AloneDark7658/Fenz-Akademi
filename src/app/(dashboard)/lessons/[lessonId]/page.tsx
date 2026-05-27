@@ -154,7 +154,7 @@ export default async function LessonPage({
 
               {/* Quiz'e Git Butonu */}
               {hasQuiz ? (
-                <Link href={`/dashboard/lessons/${lessonId}/quiz`}>
+                <Link href={`/lessons/${lessonId}/quiz`}>
                   <div className="mt-6 relative overflow-hidden rounded-2xl bg-gradient-to-r from-edu-orange/20 to-edu-cyan/20 border border-edu-orange/30 p-5 hover:border-edu-orange/60 hover:shadow-lg hover:shadow-edu-orange/10 transition-all group cursor-pointer">
                     {/* Parlama efekti */}
                     <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-r from-edu-orange/5 to-edu-cyan/5" />
@@ -189,7 +189,7 @@ export default async function LessonPage({
             {/* Önceki / Sonraki Ders */}
             <div className="grid grid-cols-2 gap-3">
               {prevLesson ? (
-                <Link href={`/dashboard/lessons/${prevLesson.id}`}>
+                <Link href={`/lessons/${prevLesson.id}`}>
                   <div className="glass rounded-xl p-4 border border-white/10 hover:border-edu-cyan/30 transition-all group h-full">
                     <p className="text-xs text-slate-500 mb-1">← Önceki</p>
                     <p className="text-sm text-white font-medium line-clamp-2 group-hover:text-edu-cyan transition-colors">
@@ -201,7 +201,7 @@ export default async function LessonPage({
                 <div />
               )}
               {nextLesson ? (
-                <Link href={`/dashboard/lessons/${nextLesson.id}`}>
+                <Link href={`/lessons/${nextLesson.id}`}>
                   <div className="glass rounded-xl p-4 border border-white/10 hover:border-edu-cyan/30 transition-all group h-full text-right">
                     <p className="text-xs text-slate-500 mb-1">Sonraki →</p>
                     <p className="text-sm text-white font-medium line-clamp-2 group-hover:text-edu-cyan transition-colors">
@@ -224,10 +224,10 @@ export default async function LessonPage({
                   <h2 className="text-sm font-semibold text-white">{lesson.course.title}</h2>
                 </div>
                 <div className="divide-y divide-white/5 max-h-[calc(100vh-12rem)] overflow-y-auto">
-                  {siblings.map((sib, idx) => {
+                  {siblings.map((sib: { id: string; title: string; duration: number | null }, idx: number) => {
                     const isCurrent = sib.id === lessonId;
                     return (
-                      <Link key={sib.id} href={`/dashboard/lessons/${sib.id}`}>
+                      <Link key={sib.id} href={`/lessons/${sib.id}`}>
                         <div
                           className={`flex items-center gap-3 px-5 py-3.5 hover:bg-white/5 transition-colors ${
                             isCurrent ? "bg-edu-cyan/10" : ""
