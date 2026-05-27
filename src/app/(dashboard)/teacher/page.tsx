@@ -148,7 +148,7 @@ export default async function TeacherDashboardPage() {
               </p>
             ) : (
               <div className="space-y-2">
-                {recentQuestions.map((q) => (
+                {recentQuestions.map((q: any) => (
                   <div
                     key={q.id}
                     className="flex items-center justify-between gap-4 p-4 rounded-2xl bg-black/20 hover:bg-white/5 border border-white/5 transition-all"
