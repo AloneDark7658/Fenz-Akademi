@@ -115,6 +115,7 @@ export default function LoginPage() {
                     type="email"
                     placeholder="ornek@mail.com"
                     autoComplete="email"
+                    defaultValue={!state?.success && state?.data?.email ? (state.data.email as string) : ""}
                     className="pl-12 bg-black/20 border-white/10 text-white placeholder:text-slate-600 focus:border-cyan-500/50 focus:ring-cyan-500/20 rounded-2xl h-14 transition-all"
                   />
                 </div>

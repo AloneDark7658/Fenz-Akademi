@@ -172,6 +172,7 @@ export default function RegisterPage() {
                     type="text"
                     placeholder="Adınız Soyadınız"
                     autoComplete="name"
+                    defaultValue={!state?.success && state?.data?.name ? (state.data.name as string) : ""}
                     className="pl-12 bg-black/20 border-white/10 text-white placeholder:text-slate-600 focus:border-cyan-500/50 focus:ring-cyan-500/20 rounded-2xl h-14 transition-all"
                   />
                 </div>
@@ -189,6 +190,7 @@ export default function RegisterPage() {
                     type="email"
                     placeholder="ornek@mail.com"
                     autoComplete="email"
+                    defaultValue={!state?.success && state?.data?.email ? (state.data.email as string) : ""}
                     className="pl-12 bg-black/20 border-white/10 text-white placeholder:text-slate-600 focus:border-cyan-500/50 focus:ring-cyan-500/20 rounded-2xl h-14 transition-all"
                   />
                 </div>
@@ -255,7 +257,7 @@ export default function RegisterPage() {
                         <select
                           id="classLevel"
                           name="classLevel"
-                          defaultValue=""
+                          defaultValue={!state?.success && state?.data?.classLevel ? String(state.data.classLevel) : ""}
                           className="w-full h-14 pl-4 pr-12 rounded-2xl bg-black/20 border border-white/10 text-white focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 focus:outline-none appearance-none text-base transition-all group-hover:border-white/20"
                         >
                           <option value="" disabled className="bg-slate-900">Sınıf seçiniz...</option>

@@ -64,7 +64,7 @@ const ROLE_DASHBOARD: Record<string, string> = {
 
 export type AuthResult =
   | { success: true }
-  | { success: false; error: string; fieldErrors?: Record<string, string[]> };
+  | { success: false; error: string; fieldErrors?: Record<string, string[]>; data?: Record<string, any> };
 
 // ─── KAYIT (signUp) ──────────────────────────────────────────────────────────
 
@@ -98,6 +98,7 @@ export async function signUpAction(
       success: false,
       error: "Lütfen formdaki hataları düzeltin",
       fieldErrors: validation.error.flatten().fieldErrors as Record<string, string[]>,
+      data: { name: raw.name, email: raw.email, role: raw.role, classLevel: raw.classLevel },
     };
   }
 
@@ -128,6 +129,7 @@ export async function signUpAction(
     return {
       success: false,
       error: errorMap[authError.message] ?? "Kayıt sırasında bir hata oluştu. Lütfen tekrar deneyin.",
+      data: { name, email, role, classLevel },
     };
   }
 
@@ -156,6 +158,7 @@ export async function signUpAction(
     return {
       success: false,
       error: "Profil oluşturulurken bir hata oluştu. Lütfen tekrar deneyin.",
+      data: { name, email, role, classLevel },
     };
   }
 
@@ -192,6 +195,7 @@ export async function signInAction(
       success: false,
       error: "Lütfen formdaki hataları düzeltin",
       fieldErrors: validation.error.flatten().fieldErrors as Record<string, string[]>,
+      data: { email: raw.email },
     };
   }
 
@@ -214,6 +218,7 @@ export async function signInAction(
     return {
       success: false,
       error: errorMap[authError.message] ?? "Giriş sırasında bir hata oluştu.",
+      data: { email },
     };
   }
 
@@ -233,6 +238,7 @@ export async function signInAction(
     return {
       success: false,
       error: "Kullanıcı profili bulunamadı. Lütfen destek ile iletişime geçin.",
+      data: { email },
     };
   }
 
