@@ -243,7 +243,7 @@ function AddLessonForm({ courses }: { courses: CourseOption[] }) {
         return new Promise((resolve, reject) => {
           const xhr = new XMLHttpRequest();
           xhr.open("PUT", data.uploadUrl, true);
-          xhr.setRequestHeader("AccessKey", process.env.NEXT_PUBLIC_BUNNY_API_KEY || ""); // Gerçek senaryoda bu token dönmeli veya güvenli yapılmalı
+          xhr.setRequestHeader("AccessKey", data.token); // Backend'den gelen token (API Key)
           
           xhr.upload.onprogress = (event) => {
             if (event.lengthComputable) {
@@ -349,7 +349,7 @@ function AddLessonForm({ courses }: { courses: CourseOption[] }) {
                 <div className="flex flex-col items-center text-slate-400">
                   <UploadCloud className="w-8 h-8 mb-2 text-slate-300" />
                   <span className="text-sm">Video seçmek için tıklayın</span>
-                  <span className="text-xs opacity-70 mt-1">MP4, WebM (Maks 1GB)</span>
+                  <span className="text-xs opacity-70 mt-1">MP4, WebM (Sınırsız Boyut / Yüksek Kalite)</span>
                 </div>
               )}
             </Label>
@@ -378,17 +378,37 @@ function AddLessonForm({ courses }: { courses: CourseOption[] }) {
       {/* Süre */}
       <div className="space-y-1.5">
         <Label className="text-slate-300 text-sm font-medium">
-          Video Süresi{" "}
-          <span className="text-slate-500 text-xs font-normal">(saniye, opsiyonel)</span>
+          Video Süresi <span className="text-slate-500 text-xs font-normal">(opsiyonel)</span>
         </Label>
-        <Input
-          name="duration"
-          type="number"
-          min={0}
-          placeholder="örn: 480 (8 dakika)"
-          className="bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:border-edu-cyan rounded-xl h-11"
-        />
-        <FieldError errors={errors?.duration} />
+        <div className="flex items-center gap-3">
+          <div className="flex-1 relative">
+            <Input
+              name="durationHours"
+              type="number"
+              min={0}
+              placeholder="0"
+              className="bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:border-edu-cyan rounded-xl h-11 pr-12"
+            />
+            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-medium pointer-events-none">
+              Saat
+            </span>
+          </div>
+          <span className="text-slate-500 font-bold">:</span>
+          <div className="flex-1 relative">
+            <Input
+              name="durationMinutes"
+              type="number"
+              min={0}
+              max={59}
+              placeholder="0"
+              className="bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:border-edu-cyan rounded-xl h-11 pr-16"
+            />
+            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-medium pointer-events-none">
+              Dakika
+            </span>
+          </div>
+        </div>
+        <FieldError errors={errors?.durationHours || errors?.durationMinutes} />
       </div>
 
       {/* Açıklama */}

@@ -155,12 +155,17 @@ const addLessonSchema = z.object({
     .optional()
     .or(z.literal("")),
   description: z.string().max(500).optional(),
-  duration: z.coerce
-    .number()
-    .int()
-    .min(0)
-    .optional()
-    .nullable(),
+  durationHours: z.coerce.number().int().min(0).optional().nullable(),
+  durationMinutes: z.coerce.number().int().min(0).max(59).optional().nullable(),
+});
+
+const updateLessonSchema = z.object({
+  lessonId: z.string().min(1, "Ders bulunamadı"),
+  courseId: z.string().min(1, "Kurs seçiniz"),
+  title: z.string().min(3, "Ders adı en az 3 karakter olmalıdır").max(200),
+  description: z.string().max(500).optional(),
+  durationHours: z.coerce.number().int().min(0).optional().nullable(),
+  durationMinutes: z.coerce.number().int().min(0).max(59).optional().nullable(),
 });
 
 // ─── Tip Tanımları ────────────────────────────────────────────────────────────
@@ -232,8 +237,8 @@ export async function addLessonAction(
     courseId: formData.get("courseId"),
     title: formData.get("title"),
     bunnyVideoId: formData.get("bunnyVideoId") || undefined,
-    description: formData.get("description") || undefined,
-    duration: formData.get("duration") || null,
+    durationHours: formData.get("durationHours") || null,
+    durationMinutes: formData.get("durationMinutes") || null,
   };
 
   const validation = addLessonSchema.safeParse(raw);
@@ -261,7 +266,10 @@ export async function addLessonAction(
       courseId: validation.data.courseId,
       title: validation.data.title,
       bunnyVideoId: validation.data.bunnyVideoId || null,
-      duration: validation.data.duration ?? null,
+      duration: 
+        (validation.data.durationHours || 0) * 3600 + (validation.data.durationMinutes || 0) * 60 > 0
+          ? (validation.data.durationHours || 0) * 3600 + (validation.data.durationMinutes || 0) * 60
+          : null,
       orderIndex: course._count.videoLessons + 1,
     },
   });
@@ -271,35 +279,159 @@ export async function addLessonAction(
   return { success: true, message: "Video ders başarıyla eklendi! 🎬", lessonId: lesson.id };
 }
 
-// ─── Ders Yayınlama/Yayından Kaldırma Toogle ─────────────────────────────────
+// ─── Video Ders Güncelleme Action ─────────────────────────────────────────────
 
-export async function toggleLessonPublishAction(lessonId: string): Promise<void> {
+export async function updateLessonAction(
+  _prev: LessonActionResult | null,
+  formData: FormData
+): Promise<LessonActionResult> {
   const auth = await requireTeacher();
-  if (auth.error) return;
+  if (auth.error) return { success: false, error: auth.error };
 
-  const lesson = await prisma.videoLesson.findUnique({
-    where: { id: lessonId },
-    include: { course: { select: { isPublished: true } } },
+  const raw = {
+    lessonId: formData.get("lessonId"),
+    courseId: formData.get("courseId"),
+    title: formData.get("title"),
+    description: formData.get("description") || undefined,
+    durationHours: formData.get("durationHours") || null,
+    durationMinutes: formData.get("durationMinutes") || null,
+  };
+
+  const validation = updateLessonSchema.safeParse(raw);
+  if (!validation.success) {
+    return {
+      success: false,
+      error: "Lütfen formdaki hataları düzeltin",
+      fieldErrors: validation.error.flatten().fieldErrors as Record<string, string[]>,
+    };
+  }
+
+  const existingLesson = await prisma.videoLesson.findUnique({
+    where: { id: validation.data.lessonId },
   });
 
-  if (!lesson) return;
+  if (!existingLesson) {
+    return { success: false, error: "Ders bulunamadı" };
+  }
 
-  // Kurs yayında değilse, dersi de yayına alırken kursu aktif et
+  // Yeni süre hesaplama
+  const duration = 
+    (validation.data.durationHours || 0) * 3600 + (validation.data.durationMinutes || 0) * 60 > 0
+      ? (validation.data.durationHours || 0) * 3600 + (validation.data.durationMinutes || 0) * 60
+      : null;
+
+  await prisma.videoLesson.update({
+    where: { id: validation.data.lessonId },
+    data: {
+      courseId: validation.data.courseId,
+      title: validation.data.title,
+      duration,
+    },
+  });
+
+  revalidatePath("/teacher/lessons");
+  revalidatePath("/teacher/questions");
+  return { success: true, message: "Ders güncellendi! ✅", lessonId: validation.data.lessonId };
+}
+
+// ─── Kurs Yayınlama/Yayından Kaldırma Toogle ─────────────────────────────────
+
+export async function toggleCoursePublishAction(courseId: string) {
+  const auth = await requireTeacher();
+  if (auth.error) return { success: false, error: auth.error };
+
+  const course = await prisma.course.findUnique({
+    where: { id: courseId },
+  });
+
+  if (!course) return { success: false, error: "Kurs bulunamadı" };
+
+  await prisma.course.update({
+    where: { id: courseId },
+    data: { isPublished: !course.isPublished },
+  });
+
+  revalidatePath("/teacher/lessons");
+  return { success: true };
+}
+
+// ─── Silme ve Sıralama Action'ları ──────────────────────────────────────────
+
+export async function deleteCourseAction(courseId: string) {
+  const auth = await requireTeacher();
+  if (auth.error) return { success: false, error: auth.error };
+
+  // Veritabanından kursu sil (Cascade sayesinde içindeki dersler ve sorular da silinir)
+  // Not: Bunny.net API'si üzerinden videoları temizlemek için ayrı bir mekanizma veya background job gerekebilir.
+  // Basitlik adına şu an sadece DB'den siliyoruz. Gerçek prod ortamında videoId'leri toplayıp Bunny'ye DELETE atılmalı.
+  await prisma.course.delete({ where: { id: courseId } });
+  
+  revalidatePath("/teacher/lessons");
+  return { success: true };
+}
+
+export async function deleteLessonAction(lessonId: string, bunnyVideoId?: string | null) {
+  const auth = await requireTeacher();
+  if (auth.error) return { success: false, error: auth.error };
+
+  await prisma.videoLesson.delete({ where: { id: lessonId } });
+
+  // Eğer Bunny'de video varsa onu da sil
+  if (bunnyVideoId && process.env.BUNNY_API_KEY && process.env.BUNNY_LIBRARY_ID) {
+    try {
+      await fetch(
+        `https://video.bunnycdn.com/library/${process.env.BUNNY_LIBRARY_ID}/videos/${bunnyVideoId}`,
+        {
+          method: "DELETE",
+          headers: {
+            AccessKey: process.env.BUNNY_API_KEY,
+            Accept: "application/json",
+          },
+        }
+      );
+    } catch (e) {
+      console.error("Bunny API Video Silme Hatası:", e);
+    }
+  }
+
+  revalidatePath("/teacher/lessons");
+  return { success: true };
+}
+
+export async function reorderLessonAction(lessonId: string, direction: "UP" | "DOWN") {
+  const auth = await requireTeacher();
+  if (auth.error) return { success: false, error: auth.error };
+
+  const currentLesson = await prisma.videoLesson.findUnique({
+    where: { id: lessonId },
+  });
+
+  if (!currentLesson) return { success: false, error: "Ders bulunamadı" };
+
+  const siblingLesson = await prisma.videoLesson.findFirst({
+    where: {
+      courseId: currentLesson.courseId,
+      orderIndex: direction === "UP" 
+        ? { lt: currentLesson.orderIndex } 
+        : { gt: currentLesson.orderIndex },
+    },
+    orderBy: { orderIndex: direction === "UP" ? "desc" : "asc" },
+  });
+
+  if (!siblingLesson) return { success: false, error: "Sınırda" }; // Zaten en üstte veya en altta
+
+  // Sıraları (orderIndex) takas et
   await prisma.$transaction([
     prisma.videoLesson.update({
-      where: { id: lessonId },
-      // VideoLesson modelinde isPublished yok — kursu güncelliyoruz
-      data: {},
+      where: { id: currentLesson.id },
+      data: { orderIndex: siblingLesson.orderIndex },
     }),
-    ...(lesson.course.isPublished
-      ? []
-      : [
-          prisma.course.update({
-            where: { id: lesson.courseId },
-            data: { isPublished: true },
-          }),
-        ]),
+    prisma.videoLesson.update({
+      where: { id: siblingLesson.id },
+      data: { orderIndex: currentLesson.orderIndex },
+    }),
   ]);
 
   revalidatePath("/teacher/lessons");
+  return { success: true };
 }

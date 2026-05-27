@@ -61,9 +61,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       videoId: data.guid,
-      // Gerçek senaryoda bu uploadUrl TUS protokolü veya güvenli proxy rotası olur:
+      // Doğrudan yükleme için URL ve Token (API Key) döndürülür
       uploadUrl: `https://video.bunnycdn.com/library/${LIBRARY_ID}/videos/${data.guid}`,
-      token: "secure-upload-token", // TUS signature veya proxy token
+      token: API_KEY,
       isMock: false,
     });
   } catch (error) {

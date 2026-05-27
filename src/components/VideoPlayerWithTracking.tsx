@@ -16,6 +16,8 @@ import { HlsPlayer } from "@/components/video/HlsPlayer";
 interface VideoPlayerWithTrackingProps {
   lessonId: string;
   videoUrl: string;
+  libraryId: string;
+  hostname: string;
   className?: string;
   onLessonComplete?: () => void;
 }
@@ -23,6 +25,8 @@ interface VideoPlayerWithTrackingProps {
 export function VideoPlayerWithTracking({
   lessonId,
   videoUrl,
+  libraryId,
+  hostname,
   className,
   onLessonComplete,
 }: VideoPlayerWithTrackingProps) {
@@ -122,6 +126,8 @@ export function VideoPlayerWithTracking({
       {/* Video Oynatıcı (HLS Destekli) */}
       <HlsPlayer
         videoId={videoUrl}
+        libraryId={libraryId}
+        hostname={hostname}
         videoRef={videoRef}
         onLoadedMetadata={handleLoadedMetadata}
         onTimeUpdate={handleTimeUpdate}

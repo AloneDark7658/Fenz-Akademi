@@ -2,29 +2,37 @@
 
 import { useEffect, useRef, useState } from "react";
 import Hls from "hls.js";
-import { Loader2 } from "lucide-react";
+import { Loader2, Settings } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface HlsPlayerProps extends React.VideoHTMLAttributes<HTMLVideoElement> {
   videoId: string;
+  libraryId: string;
+  hostname: string;
   videoRef?: React.RefObject<HTMLVideoElement | null>;
 }
 
-export function HlsPlayer({ videoId, videoRef, poster, className, ...props }: HlsPlayerProps) {
+export function HlsPlayer({ videoId, libraryId, hostname, videoRef, poster, className, ...props }: HlsPlayerProps) {
   const localRef = useRef<HTMLVideoElement>(null);
   const resolvedRef = videoRef || localRef;
   const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  const hlsRef = useRef<Hls | null>(null);
+  const [levels, setLevels] = useState<{ id: number; height: number }[]>([]);
+  const [currentLevel, setCurrentLevel] = useState<number>(-1); // -1 = Auto
 
   // Eğer mock id gelirse (örneğin .env girilmemişse), örnek bir Big Buck Bunny hls stream oynatalım
   const isMock = videoId.startsWith("mock-bunny-id");
   
-  // CDN Hostname genelde .env'den gelir ama Client Component'ta process.env.NEXT_PUBLIC... gerekir.
-  // Basitlik için hardcode veya mock fallback yapıyoruz:
-  const cdnHostname = process.env.NEXT_PUBLIC_BUNNY_CDN_HOSTNAME || "iframe.mediadelivery.net";
-  
   const videoSrc = isMock 
     ? "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"
-    : `https://${cdnHostname}/play/${process.env.NEXT_PUBLIC_BUNNY_LIBRARY_ID}/${videoId}/playlist.m3u8`;
+    : `https://${hostname}/${videoId}/playlist.m3u8`;
 
   useEffect(() => {
     const video = resolvedRef.current;
@@ -34,15 +42,18 @@ export function HlsPlayer({ videoId, videoRef, poster, className, ...props }: Hl
 
     if (Hls.isSupported()) {
       hls = new Hls({
-        capLevelToPlayerSize: true, // Dinamik çözünürlük adaptasyonu
         maxBufferLength: 30, // 30 saniyelik tampon
+        startLevel: -1, // Otomatik bant genişliğine göre başlat
       });
+      hlsRef.current = hls;
 
       hls.loadSource(videoSrc);
       hls.attachMedia(video);
 
-      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+      hls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
         setIsReady(true);
+        // data.levels HLS manifestinden gelen kalite çözünürlükleri
+        setLevels(data.levels.map((l, index) => ({ id: index, height: l.height })));
       });
 
       hls.on(Hls.Events.ERROR, (event, data) => {
@@ -70,11 +81,18 @@ export function HlsPlayer({ videoId, videoRef, poster, className, ...props }: Hl
     }
 
     return () => {
-      if (hls) {
-        hls.destroy();
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
       }
     };
   }, [videoSrc, resolvedRef]);
+
+  const handleLevelChange = (levelId: number) => {
+    if (hlsRef.current) {
+      hlsRef.current.currentLevel = levelId;
+      setCurrentLevel(levelId);
+    }
+  };
 
   return (
     <div className={`relative w-full aspect-video bg-black/80 rounded-2xl overflow-hidden border border-white/10 group shadow-[0_0_40px_rgba(34,211,238,0.15)] ${className || ""}`}>
@@ -101,6 +119,40 @@ export function HlsPlayer({ videoId, videoRef, poster, className, ...props }: Hl
         className={`w-full h-full object-contain transition-opacity duration-700 ${isReady ? "opacity-100" : "opacity-0"}`}
         {...props}
       />
+
+      {isReady && levels.length > 0 && (
+        <div className="absolute top-4 right-4 z-20">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="bg-black/60 hover:bg-black/80 backdrop-blur-md text-white border border-white/10 p-2 rounded-lg transition-colors shadow-lg">
+                <Settings className="w-4 h-4" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-32 bg-slate-900 border-white/10 text-white rounded-xl">
+              <DropdownMenuItem
+                className={`focus:bg-edu-cyan/20 focus:text-edu-cyan cursor-pointer rounded-lg mb-1 ${
+                  currentLevel === -1 ? "text-edu-cyan font-bold bg-edu-cyan/10" : "text-slate-300"
+                }`}
+                onClick={() => handleLevelChange(-1)}
+              >
+                Otomatik
+              </DropdownMenuItem>
+              {/* Kaliteleri yüksekten düşüğe doğru sıralayalım */}
+              {[...levels].reverse().map((level) => (
+                <DropdownMenuItem
+                  key={level.id}
+                  className={`focus:bg-edu-cyan/20 focus:text-edu-cyan cursor-pointer rounded-lg mb-1 ${
+                    currentLevel === level.id ? "text-edu-cyan font-bold bg-edu-cyan/10" : "text-slate-300"
+                  }`}
+                  onClick={() => handleLevelChange(level.id)}
+                >
+                  {level.height}p
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      )}
     </div>
   );
 }

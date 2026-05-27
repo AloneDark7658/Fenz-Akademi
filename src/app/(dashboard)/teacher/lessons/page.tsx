@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { LessonManagementForms } from "@/components/teacher/LessonManagementForms";
+import { CourseActions } from "@/components/teacher/CourseActions";
+import { LessonActions } from "@/components/teacher/LessonActions";
 import {
   Video,
   BookOpen,
@@ -122,7 +124,7 @@ export default async function TeacherLessonsPage() {
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <Badge
                           variant="outline"
-                          className="border-white/10 text-slate-400 text-xs"
+                          className="border-white/10 text-slate-400 text-xs hidden sm:inline-flex"
                         >
                           {course.gradeLevel}. Sınıf
                         </Badge>
@@ -130,12 +132,13 @@ export default async function TeacherLessonsPage() {
                           variant="outline"
                           className={
                             course.isPublished
-                              ? "border-green-500/30 text-green-400 text-xs"
-                              : "border-yellow-500/30 text-yellow-400 text-xs"
+                              ? "border-green-500/30 text-green-400 text-xs hidden sm:inline-flex"
+                              : "border-yellow-500/30 text-yellow-400 text-xs hidden sm:inline-flex"
                           }
                         >
                           {course.isPublished ? "Yayında" : "Taslak"}
                         </Badge>
+                        <CourseActions courseId={course.id} isPublished={course.isPublished} />
                       </div>
                     </div>
 
@@ -146,7 +149,7 @@ export default async function TeacherLessonsPage() {
                       </p>
                     ) : (
                       <div className="pl-4 space-y-1">
-                        {course.videoLessons.map((lesson) => (
+                        {course.videoLessons.map((lesson, index) => (
                           <div
                             key={lesson.id}
                             className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-white/5 transition-colors group"
@@ -173,10 +176,19 @@ export default async function TeacherLessonsPage() {
                             </div>
                             {/* Video linki varsa */}
                             {lesson.bunnyVideoId && (
-                              <div className="opacity-0 group-hover:opacity-100 transition-opacity text-edu-cyan" title={`Video ID: ${lesson.bunnyVideoId}`}>
+                              <div className="opacity-0 group-hover:opacity-100 transition-opacity text-edu-cyan flex-shrink-0" title={`Video ID: ${lesson.bunnyVideoId}`}>
                                 <Link2 className="w-3.5 h-3.5" />
                               </div>
                             )}
+
+                            {/* Ders İşlemleri */}
+                            <LessonActions 
+                              lesson={lesson} 
+                              bunnyVideoId={lesson.bunnyVideoId}
+                              isFirst={index === 0}
+                              isLast={index === course.videoLessons.length - 1}
+                              courses={courseOptions}
+                            />
                           </div>
                         ))}
                       </div>

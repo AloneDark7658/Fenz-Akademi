@@ -12,17 +12,10 @@ import {
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Activity } from "lucide-react";
 
-const mockData = [
-  { day: "Pzt", count: 12 },
-  { day: "Sal", count: 19 },
-  { day: "Çar", count: 15 },
-  { day: "Per", count: 25 },
-  { day: "Cum", count: 22 },
-  { day: "Cmt", count: 35 },
-  { day: "Paz", count: 42 },
-];
+export function WeeklyActivityChart({ data = [] }: { data?: any[] }) {
+  // Bütün sayılar 0 ise boş sayılır
+  const hasData = data.some((d) => d.count > 0);
 
-export function WeeklyActivityChart({ data = mockData }: { data?: any[] }) {
   return (
     <Card className="bg-white/5 border border-white/10 rounded-3xl h-full flex flex-col group hover:border-cyan-500/30 transition-all duration-500 hover:shadow-[0_0_30px_rgba(34,211,238,0.1)]">
       <CardHeader className="pb-2">
@@ -37,7 +30,15 @@ export function WeeklyActivityChart({ data = mockData }: { data?: any[] }) {
         {/* Dekoratif parlama arka plan */}
         <div className="absolute inset-0 bg-gradient-to-t from-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-b-3xl pointer-events-none" />
         
-        <ResponsiveContainer width="100%" height="100%">
+        {!hasData ? (
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-500 z-10">
+            <Activity className="w-12 h-12 mb-3 opacity-20" />
+            <p className="text-sm font-medium">Bu hafta soru çözülmedi</p>
+            <p className="text-xs opacity-70">Aktivite grafiğini başlatmak için teste başla.</p>
+          </div>
+        ) : null}
+
+        <ResponsiveContainer width="100%" height="100%" className={!hasData ? "opacity-20" : ""}>
           <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
             <defs>
               <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">

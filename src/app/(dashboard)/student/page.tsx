@@ -52,7 +52,19 @@ export default async function StudentDashboardPage() {
         streak: true,
         classLevel: true,
         inviteCode: true,
-        quizResults: { select: { score: true, correctCount: true, wrongCount: true } },
+        quizResults: { 
+          select: { 
+            score: true, 
+            correctCount: true, 
+            wrongCount: true,
+            createdAt: true,
+            lesson: {
+              select: {
+                course: { select: { title: true } }
+              }
+            }
+          } 
+        },
         progresses: {
           where: { watchPercentage: { gt: 0 } },
           include: {
@@ -116,9 +128,58 @@ export default async function StudentDashboardPage() {
   const xpToNext = 1000 - (dbUser.points % 1000);
   const level = Math.floor(dbUser.points / 1000) + 1;
 
-  // Devam eden ve tamamlanan dersler
   const inProgress = dbUser.progresses.filter((p) => p.watchPercentage < 90);
   const firstName = dbUser.name.split(" ")[0];
+
+  // --- Analitik Grafikler İçin Gerçek Veriler ---
+  
+  // 1. Konu Bazlı Başarı (Radar Chart)
+  const courseScores: Record<string, { totalScore: number; count: number }> = {};
+  dbUser.quizResults.forEach((qr) => {
+    const courseTitle = qr.lesson.course.title;
+    if (!courseScores[courseTitle]) {
+      courseScores[courseTitle] = { totalScore: 0, count: 0 };
+    }
+    courseScores[courseTitle].totalScore += qr.score;
+    courseScores[courseTitle].count += 1;
+  });
+
+  let subjectPerformanceData = Object.entries(courseScores).map(([subject, stats]) => ({
+    subject: subject.length > 12 ? subject.substring(0, 10) + ".." : subject,
+    A: Math.round(stats.totalScore / stats.count),
+    fullMark: 100
+  }));
+  
+  // Radar grafiğinin düzgün çizilebilmesi için en az 3 nokta olması iyidir. 
+  // Eğer hiç veri yoksa boş liste, varsa olanları gösterir.
+
+  // 2. Haftalık Soru Aktivitesi (Area Chart)
+  const last7Days = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (6 - i));
+    d.setHours(0, 0, 0, 0);
+    return d;
+  });
+  const daysOfWeek = ["Paz", "Pzt", "Sal", "Çar", "Per", "Cum", "Cmt"];
+
+  const weeklyActivityData = last7Days.map((date) => {
+    const nextDay = new Date(date);
+    nextDay.setDate(nextDay.getDate() + 1);
+
+    const quizzesOnDay = dbUser.quizResults.filter(
+      (qr) => qr.createdAt >= date && qr.createdAt < nextDay
+    );
+
+    const questionCount = quizzesOnDay.reduce(
+      (acc, qr) => acc + qr.correctCount + qr.wrongCount,
+      0
+    );
+
+    return {
+      day: daysOfWeek[date.getDay()],
+      count: questionCount,
+    };
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 selection:bg-edu-cyan/30">
@@ -216,8 +277,8 @@ export default async function StudentDashboardPage() {
 
         {/* ── Analitik Raporlar (Grafikler) ── */}
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <WeeklyActivityChart />
-          <SubjectPerformanceChart />
+          <WeeklyActivityChart data={weeklyActivityData} />
+          <SubjectPerformanceChart data={subjectPerformanceData.length > 0 ? subjectPerformanceData : undefined} />
         </section>
 
         {/* ── Davet Kodu & Eşleştirme ── */}
@@ -250,7 +311,7 @@ export default async function StudentDashboardPage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {inProgress.map((prog) => (
-                <Link key={prog.id} href={`/dashboard/lessons/${prog.lesson.id}`}>
+                <Link key={prog.id} href={`/lessons/${prog.lesson.id}`}>
                   <div className="group bg-white/5 rounded-3xl p-6 border border-white/10 hover:border-cyan-500/40 hover:shadow-[0_0_25px_rgba(6,182,212,0.2)] transition-all duration-300 hover:-translate-y-1.5 cursor-pointer h-full flex flex-col">
                     <p className="text-xs text-cyan-400 font-bold tracking-wider uppercase mb-2">{prog.lesson.course.title}</p>
                     <h3 className="text-white font-bold text-base leading-snug line-clamp-2 flex-1 group-hover:text-cyan-50 transition-colors">
@@ -311,7 +372,7 @@ export default async function StudentDashboardPage() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {recommendedLessons.map((lesson, i) => (
-                <Link key={lesson.id} href={`/dashboard/lessons/${lesson.id}`}>
+                <Link key={lesson.id} href={`/lessons/${lesson.id}`}>
                   <div className="group relative bg-white/5 rounded-3xl border border-white/10 hover:border-cyan-500/40 hover:shadow-[0_0_25px_rgba(6,182,212,0.2)] transition-all duration-300 hover:-translate-y-2 cursor-pointer overflow-hidden h-full flex flex-col">
                     {/* Renk şeridi üstte */}
                     <div

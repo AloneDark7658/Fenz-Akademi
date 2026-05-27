@@ -52,9 +52,9 @@ export default function LandingPage() {
       
       {/* ─── Arka Plan Süslemeleri (Radial Gradients) ─── */}
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-        <div className="absolute top-[-10%] left-[-10%] w-[60vw] h-[60vh] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-cyan-900/20 via-slate-950/0 to-transparent blur-3xl" />
-        <div className="absolute top-[40%] right-[-10%] w-[50vw] h-[50vh] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-900/20 via-slate-950/0 to-transparent blur-3xl" />
-        <div className="absolute bottom-[-10%] left-[20%] w-[50vw] h-[50vh] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-orange-900/10 via-slate-950/0 to-transparent blur-3xl" />
+        <div className="absolute top-[-10%] left-[-10%] w-[60vw] h-[60vh] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-cyan-900/20 via-slate-950/0 to-transparent" />
+        <div className="absolute top-[40%] right-[-10%] w-[50vw] h-[50vh] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-900/20 via-slate-950/0 to-transparent" />
+        <div className="absolute bottom-[-10%] left-[20%] w-[50vw] h-[50vh] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-orange-900/10 via-slate-950/0 to-transparent" />
         
         {/* Zarif ızgara (Grid) */}
         <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-5" />
@@ -119,7 +119,7 @@ export default function LandingPage() {
       </section>
 
       {/* ─── Özellikler (Features) Section ─── */}
-      <section className="relative z-10 py-24 px-4 bg-slate-900/30 backdrop-blur-md border-t border-white/5">
+      <section className="relative z-10 py-24 px-4 bg-slate-900/40 border-t border-white/5">
         <div className="max-w-7xl mx-auto">
           
           <motion.div
@@ -143,10 +143,10 @@ export default function LandingPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-50px" }}
                 transition={{ duration: 0.5, delay: idx * 0.2 }}
-                className={`group relative bg-white/5 backdrop-blur-xl border rounded-3xl p-8 transition-all duration-500 overflow-hidden ${feature.glow}`}
+                className={`group relative bg-white/5 backdrop-blur-sm border rounded-3xl p-8 transition-all duration-500 overflow-hidden ${feature.glow}`}
               >
                 {/* Kart Arkası Dekoratif Işık */}
-                <div className="absolute -top-24 -right-24 w-48 h-48 bg-white/5 rounded-full blur-3xl group-hover:bg-white/10 transition-colors duration-500" />
+                <div className="absolute -top-24 -right-24 w-48 h-48 bg-white/5 rounded-full group-hover:bg-white/10 transition-colors duration-500" />
                 
                 <div className="relative z-10">
                   <div className="mb-6 p-4 inline-block bg-slate-950/50 rounded-2xl border border-white/5 shadow-inner">

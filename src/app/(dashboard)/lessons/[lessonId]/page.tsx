@@ -81,7 +81,7 @@ export default async function LessonPage({
 
   // Sonraki ve önceki dersleri bul
   const siblings = lesson.course.videoLessons;
-  const currentIdx = siblings.findIndex((l) => l.id === lessonId);
+  const currentIdx = siblings.findIndex((l: { id: string }) => l.id === lessonId);
   const nextLesson = siblings[currentIdx + 1] ?? null;
   const prevLesson = siblings[currentIdx - 1] ?? null;
 
@@ -117,6 +117,8 @@ export default async function LessonPage({
             <VideoPlayerWithTracking
               lessonId={lessonId}
               videoUrl={videoUrl}
+              libraryId={process.env.BUNNY_LIBRARY_ID || ""}
+              hostname={process.env.BUNNY_CDN_HOSTNAME || "iframe.mediadelivery.net"}
             />
 
             {/* Başlık ve Tamamlanma Durumu */}
