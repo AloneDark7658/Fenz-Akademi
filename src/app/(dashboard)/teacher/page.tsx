@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { BookOpen, Users, ClipboardList, TrendingUp, Plus } from "lucide-react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+
 
 export const metadata: Metadata = { title: "Öğretmen Paneli" };
 

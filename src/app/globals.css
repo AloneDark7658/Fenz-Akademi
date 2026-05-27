@@ -151,6 +151,16 @@
 
 body {
   font-family: var(--font-sans), system-ui, sans-serif;
+  /* Scroll kasmasini önle */
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: none;
+}
+
+/* GPU compositing layer — scroll esnasında repaint olmasın */
+.bg-deco-layer {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 /* ─── Özel Animasyonlar ──────────────────────────────────────────────────── */
@@ -168,10 +178,10 @@ body {
 @keyframes glow-pulse {
   0%,
   100% {
-    box-shadow: 0 0 5px var(--streak-glow), 0 0 10px var(--streak-glow);
+    opacity: 0.7;
   }
   50% {
-    box-shadow: 0 0 15px var(--streak-glow), 0 0 30px var(--streak-glow);
+    opacity: 1;
   }
 }
 
@@ -214,6 +224,18 @@ body {
   );
   background-size: 200% 100%;
   animation: shimmer 2s linear infinite;
+  will-change: background-position;
+}
+
+/* Erişilebilirlik: Hareket hassasiyeti olan kullanıcılarda animasyonları kaldır */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 .animate-points-pop {

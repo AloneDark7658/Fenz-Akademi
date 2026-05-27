@@ -50,14 +50,11 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-slate-950 text-white selection:bg-cyan-500/30 font-sans overflow-x-hidden">
       
-      {/* ─── Arka Plan Süslemeleri (Radial Gradients) ─── */}
-      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-        <div className="absolute top-[-10%] left-[-10%] w-[60vw] h-[60vh] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-cyan-900/20 via-slate-950/0 to-transparent" />
-        <div className="absolute top-[40%] right-[-10%] w-[50vw] h-[50vh] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-900/20 via-slate-950/0 to-transparent" />
-        <div className="absolute bottom-[-10%] left-[20%] w-[50vw] h-[50vh] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-orange-900/10 via-slate-950/0 to-transparent" />
-        
-        {/* Zarif ızgara (Grid) */}
-        <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-5" />
+      {/* ─── Arka Plan Süslemeleri — GPU layer'da sabit, scroll'dan etkilenmez ─── */}
+      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden" style={{ willChange: 'transform', transform: 'translateZ(0)' }}>
+        <div className="absolute top-[-10%] left-[-10%] w-[60vw] h-[60vh] rounded-full" style={{ background: 'radial-gradient(ellipse at center, rgba(22,78,99,0.18) 0%, transparent 70%)' }} />
+        <div className="absolute top-[40%] right-[-10%] w-[50vw] h-[50vh] rounded-full" style={{ background: 'radial-gradient(ellipse at center, rgba(88,28,135,0.16) 0%, transparent 70%)' }} />
+        <div className="absolute bottom-[-10%] left-[20%] w-[50vw] h-[50vh] rounded-full" style={{ background: 'radial-gradient(ellipse at center, rgba(124,45,18,0.10) 0%, transparent 70%)' }} />
       </div>
 
       {/* ─── Hero Section ─── */}
@@ -71,7 +68,7 @@ export default function LandingPage() {
           {/* Fenz Logo/İkon */}
           <motion.div variants={fadeInUp} className="mb-6 relative group">
             <div className="absolute inset-0 bg-edu-cyan blur-2xl opacity-20 rounded-full group-hover:opacity-40 transition-opacity duration-700" />
-            <Rocket className="w-16 h-16 text-edu-cyan relative z-10 animate-bounce" style={{ animationDuration: '3s' }} />
+            <Rocket className="w-16 h-16 text-edu-cyan relative z-10" style={{ animation: 'float 3s ease-in-out infinite' }} />
           </motion.div>
 
           {/* Dev Başlık */}
@@ -92,7 +89,7 @@ export default function LandingPage() {
             className="text-lg md:text-2xl text-slate-400 mb-10 font-medium max-w-2xl leading-relaxed"
           >
             Ortaokul fen bilimleri artık çok daha eğlenceli. Fenz Akademi ile ezberci eğitime son verin, konfeti yağmurları ve interaktif deneylerle başarıya uçun.
-            <Sparkles className="inline-block w-6 h-6 ml-2 text-yellow-400 animate-pulse" />
+            <Sparkles className="inline-block w-6 h-6 ml-2 text-yellow-400" />
           </motion.p>
 
           {/* CTA Butonları */}
@@ -122,32 +119,19 @@ export default function LandingPage() {
       <section className="relative z-10 py-24 px-4 bg-slate-900/40 border-t border-white/5">
         <div className="max-w-7xl mx-auto">
           
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.6 }}
-            className="text-center mb-16"
-          >
+          <div className="text-center mb-16">
             <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">
               Fen Bilimlerinin <span className="text-edu-cyan">Geleceği</span> Burada
             </h2>
             <p className="text-slate-400 text-lg">Sıradan platformları unutun, tamamen size özel bir teknoloji.</p>
-          </motion.div>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {features.map((feature, idx) => (
-              <motion.div
+              <div
                 key={idx}
-                initial={{ opacity: 0, y: 50 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-50px" }}
-                transition={{ duration: 0.5, delay: idx * 0.2 }}
-                className={`group relative bg-white/5 backdrop-blur-sm border rounded-3xl p-8 transition-all duration-500 overflow-hidden ${feature.glow}`}
+                className={`group relative bg-white/5 border rounded-3xl p-8 transition-all duration-300 overflow-hidden ${feature.glow}`}
               >
-                {/* Kart Arkası Dekoratif Işık */}
-                <div className="absolute -top-24 -right-24 w-48 h-48 bg-white/5 rounded-full group-hover:bg-white/10 transition-colors duration-500" />
-                
                 <div className="relative z-10">
                   <div className="mb-6 p-4 inline-block bg-slate-950/50 rounded-2xl border border-white/5 shadow-inner">
                     {feature.icon}
@@ -159,7 +143,7 @@ export default function LandingPage() {
                     {feature.description}
                   </p>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
 
