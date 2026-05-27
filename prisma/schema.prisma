@@ -47,15 +47,20 @@ model User {
   points       Int      @default(0) /// Gamification puanı
   streak       Int      @default(0) /// Günlük ardışık çalışma serisi
   avatarUrl    String?  @map("avatar_url")
+  parentId     String?  @map("parent_id") /// Velinin ID'si (Eğer öğrenciyse)
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
   // İlişkiler
+  parent      User?        @relation("ParentStudent", fields: [parentId], references: [id])
+  children    User[]       @relation("ParentStudent")
   progresses  Progress[]
   quizResults QuizResult[]
+  userBadges  UserBadge[]
 
   @@index([role])
   @@index([classLevel])
+  @@index([parentId])
   @@map("users")
 }
 
@@ -169,4 +174,38 @@ model QuizResult {
   @@index([studentId])
   @@index([studentId, score])
   @@map("quiz_results")
+}
+
+// ─── Oyunlaştırma Modelleri ─────────────────────────────────────────────────
+
+/// Sistemdeki tüm kazanılabilir rozetler
+model Badge {
+  id              String   @id @default(uuid())
+  name            String
+  description     String
+  icon            String   /// İkon veya emoji
+  requirementType String   @map("requirement_type") /// STREAK, QUIZ_SCORE, TOTAL_XP vs.
+  requirementValue Int     @map("requirement_value")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  // İlişkiler
+  userBadges      UserBadge[]
+
+  @@map("badges")
+}
+
+/// Öğrencilerin kazandığı rozetler
+model UserBadge {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  badgeId   String   @map("badge_id")
+  awardedAt DateTime @default(now()) @map("awarded_at")
+
+  // İlişkiler
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge     Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, badgeId]) // Bir kullanıcı aynı rozeti bir kez kazanabilir
+  @@index([userId])
+  @@map("user_badges")
 }

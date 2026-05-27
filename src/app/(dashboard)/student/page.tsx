@@ -1,230 +1,350 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { VideoPlayerWithTracking } from "@/components/VideoPlayerWithTracking";
-import { Flame, Star, BookOpen, Trophy } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { BadgeCollection } from "@/components/student/BadgeCollection";
+import {
+  Flame,
+  Star,
+  BookOpen,
+  Trophy,
+  Play,
+  ChevronRight,
+  Sparkles,
+  Clock,
+  HelpCircle,
+} from "lucide-react";
 
-export const metadata = {
-  title: "Öğrenci Paneli | Fenz Akademi",
-  description: "Öğrenci ana ekranı",
-};
+export const metadata: Metadata = { title: "Panelim" };
+
+// ─── Yardımcı ─────────────────────────────────────────────────────────────────
+
+function formatDuration(seconds: number | null) {
+  if (!seconds) return null;
+  const m = Math.floor(seconds / 60);
+  return `${m} dk`;
+}
+
+// ─── Sayfa ────────────────────────────────────────────────────────────────────
 
 export default async function StudentDashboardPage() {
-  // 1. Supabase Auth Kontrolü (Route Protection)
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
-    redirect("/login");
-  }
+  if (!user) redirect("/login");
 
-  // 2. Prisma ile kullanıcı verilerini çek
-  const dbUser = await prisma.user.findUnique({
-    where: { id: user.id },
-    select: {
-      name: true,
-      points: true,
-      streak: true,
-      classLevel: true,
-      progresses: {
-        include: {
-          lesson: {
-            include: {
-              course: true,
+  // Tüm verileri paralel çek
+  const [dbUser, allBadges, recommendedLessons, allLessons] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: user.id },
+      select: {
+        name: true,
+        points: true,
+        streak: true,
+        classLevel: true,
+        quizResults: { select: { score: true, correctCount: true, wrongCount: true } },
+        progresses: {
+          where: { watchPercentage: { gt: 0 } },
+          include: {
+            lesson: {
+              select: {
+                id: true,
+                title: true,
+                duration: true,
+                course: { select: { title: true } },
+                _count: { select: { questions: true } },
+              },
             },
           },
+          orderBy: { lastWatchedAt: "desc" },
+          take: 6,
         },
-        orderBy: { updatedAt: "desc" },
-        take: 3, // En son izlenen 3 ders
+        userBadges: { select: { badgeId: true } },
       },
-    },
-  });
+    }),
 
-  if (!dbUser) {
-    redirect("/login");
-  }
+    // Sistemdeki tüm rozetler
+    prisma.badge.findMany({ orderBy: { requirementValue: "asc" } }),
 
-  // Önerilen kursları çek (Öğrencinin sınıf seviyesine göre)
-  const recommendedCourses = await prisma.course.findMany({
-    where: {
-      gradeLevel: dbUser.classLevel || 5,
-      isPublished: true,
-    },
-    take: 3,
-  });
+    // Sınıf seviyesine göre önerilen dersler
+    prisma.videoLesson.findMany({
+      where: {
+        course: {
+          isPublished: true,
+          gradeLevel: { gte: 5, lte: 8 },
+        },
+      },
+      include: {
+        course: { select: { title: true, gradeLevel: true } },
+        _count: { select: { questions: true } },
+      },
+      orderBy: { orderIndex: "asc" },
+      take: 8,
+    }),
 
-  // Geliştirme/Test aşaması için örnek bir video (Gerçekte DB'den gelecek)
-  const DEMO_LESSON_ID = "00000000-0000-0000-0000-000000000000"; // Test için dummy UUID
-  const DEMO_VIDEO_URL =
-    "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+    // Toplam ders sayısı
+    prisma.videoLesson.count({
+      where: { course: { isPublished: true } },
+    }),
+  ]);
+
+  if (!dbUser) redirect("/login");
+
+  const ownedBadgeIds = dbUser.userBadges.map((ub) => ub.badgeId);
+
+  // İstatistik hesapla
+  const totalQuizzes = dbUser.quizResults.length;
+  const avgScore =
+    totalQuizzes > 0
+      ? Math.round(
+          dbUser.quizResults.reduce((acc, r) => acc + r.score, 0) / totalQuizzes
+        )
+      : 0;
+  const completedLessons = dbUser.progresses.filter(
+    (p) => p.watchPercentage >= 90
+  ).length;
+  const xpToNext = 1000 - (dbUser.points % 1000);
+  const level = Math.floor(dbUser.points / 1000) + 1;
+
+  // Devam eden ve tamamlanan dersler
+  const inProgress = dbUser.progresses.filter((p) => p.watchPercentage < 90);
+  const firstName = dbUser.name.split(" ")[0];
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto p-4 md:p-8">
-      {/* Karşılama */}
-      <section className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            Merhaba, <span className="text-edu-cyan">{dbUser.name.split(" ")[0]}</span>! 👋
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Öğrenmeye kaldığın yerden devam et.
-          </p>
-        </div>
-      </section>
+    <div className="min-h-screen bg-[#0b1120]">
+      {/* Arka plan dekorasyon */}
+      <div className="pointer-events-none fixed inset-0 overflow-hidden z-0">
+        <div className="absolute -top-1/4 -right-1/4 w-1/2 h-1/2 rounded-full bg-edu-cyan/5 blur-[120px]" />
+        <div className="absolute -bottom-1/4 -left-1/4 w-1/2 h-1/2 rounded-full bg-edu-orange/5 blur-[120px]" />
+      </div>
 
-      {/* İstatistik Kartları */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="border-edu-cyan/20 bg-edu-cyan/5">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Toplam Puan</CardTitle>
-            <Star className="h-4 w-4 text-edu-cyan" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-edu-cyan">
-              {dbUser.points} XP
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Bir sonraki seviyeye {1000 - (dbUser.points % 1000)} XP kaldı
+      <div className="relative z-10 max-w-7xl mx-auto px-4 py-8 space-y-10">
+
+        {/* ── Hero Karşılama ── */}
+        <section className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div>
+            <p className="text-slate-400 text-sm font-medium mb-1">
+              {new Date().toLocaleDateString("tr-TR", { weekday: "long", day: "numeric", month: "long" })}
             </p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-edu-orange/20 bg-edu-orange/5">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Günlük Seri</CardTitle>
-            <Flame className="h-4 w-4 text-edu-orange animate-pulse" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-edu-orange">
-              {dbUser.streak} Gün 🔥
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Harika gidiyorsun, seriyi bozma!
+            <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight">
+              Merhaba, <span className="text-edu-cyan">{firstName}</span>! 👋
+            </h1>
+            <p className="text-slate-400 mt-2">
+              Öğrenmeye kaldığın yerden devam et. {allLessons} ders seni bekliyor.
             </p>
-          </CardContent>
-        </Card>
+          </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Sınıf Seviyesi</CardTitle>
-            <BookOpen className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {dbUser.classLevel ? `${dbUser.classLevel}. Sınıf` : "Belirtilmemiş"}
+          {/* Seviye Rozeti */}
+          <div className="flex-shrink-0 glass rounded-2xl px-6 py-4 border border-white/10 flex items-center gap-4">
+            <div className="relative">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-edu-cyan to-edu-navy border border-edu-cyan/30 flex items-center justify-center text-2xl font-black text-white">
+                {level}
+              </div>
+              <Sparkles className="absolute -top-1 -right-1 w-4 h-4 text-edu-orange animate-pulse" />
             </div>
-          </CardContent>
-        </Card>
+            <div>
+              <p className="text-xs text-slate-400 font-medium">Seviye {level}</p>
+              <p className="text-white font-bold text-sm mt-0.5">{dbUser.points} XP</p>
+              <div className="w-28 mt-1.5">
+                <Progress value={((1000 - xpToNext) / 1000) * 100} className="h-1.5 bg-white/10 [&>div]:bg-edu-cyan" />
+              </div>
+              <p className="text-xs text-slate-500 mt-1">{xpToNext} XP → Seviye {level + 1}</p>
+            </div>
+          </div>
+        </section>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Başarılar</CardTitle>
-            <Trophy className="h-4 w-4 text-yellow-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">Yakında</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Rozet sistemi çok yakında eklenecek.
-            </p>
-          </CardContent>
-        </Card>
-      </section>
+        {/* ── İstatistik Kartları ── */}
+        <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {[
+            {
+              label: "Günlük Seri",
+              value: `${dbUser.streak} Gün`,
+              icon: Flame,
+              color: "text-edu-orange",
+              bg: "bg-edu-orange/10 border-edu-orange/20",
+              sub: dbUser.streak > 0 ? "Harika! Seriyi koru 🔥" : "Bugün başla!",
+            },
+            {
+              label: "Çözülen Quiz",
+              value: totalQuizzes,
+              icon: Trophy,
+              color: "text-yellow-400",
+              bg: "bg-yellow-400/10 border-yellow-400/20",
+              sub: `${completedLessons} ders tamamlandı`,
+            },
+            {
+              label: "Başarı Oranı",
+              value: `%${avgScore}`,
+              icon: Star,
+              color: "text-edu-cyan",
+              bg: "bg-edu-cyan/10 border-edu-cyan/20",
+              sub: totalQuizzes > 0 ? "Ortalama skor" : "Henüz quiz yok",
+            },
+            {
+              label: "Tamamlanan",
+              value: completedLessons,
+              icon: BookOpen,
+              color: "text-purple-400",
+              bg: "bg-purple-400/10 border-purple-400/20",
+              sub: "Video ders",
+            },
+          ].map(({ label, value, icon: Icon, color, bg, sub }) => (
+            <Card key={label} className={`border ${bg} bg-transparent hover:scale-[1.02] transition-transform`}>
+              <CardContent className="p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-slate-400 text-xs font-medium">{label}</p>
+                  <Icon className={`w-4 h-4 ${color}`} />
+                </div>
+                <p className={`text-3xl font-black ${color}`}>{value}</p>
+                <p className="text-xs text-slate-500 mt-1">{sub}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </section>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Sol Kolon: Videolar ve İlerlemeler */}
-        <div className="lg:col-span-2 space-y-8">
-          
-          {/* Test Video Bileşeni */}
+        {/* ── Başarılarım / Koleksiyonum ── */}
+        <section>
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="text-xl font-bold text-white flex items-center gap-2">
+              <Trophy className="w-5 h-5 text-edu-cyan" />
+              Başarılarım
+            </h2>
+            <Badge variant="outline" className="border-edu-cyan/30 text-edu-cyan bg-edu-cyan/10">
+              {ownedBadgeIds.length} / {allBadges.length} Kazanıldı
+            </Badge>
+          </div>
+          <BadgeCollection allBadges={allBadges} ownedBadgeIds={ownedBadgeIds} />
+        </section>
+
+        {/* ── Kaldığın Yerden Devam Et ── */}
+        {inProgress.length > 0 && (
           <section>
-            <h2 className="text-xl font-semibold mb-4">Günün Öne Çıkan Dersi (Test)</h2>
-            <VideoPlayerWithTracking 
-              lessonId={DEMO_LESSON_ID} 
-              videoUrl={DEMO_VIDEO_URL} 
-            />
-          </section>
-
-          {/* Devam Eden Dersler */}
-          <section>
-            <h2 className="text-xl font-semibold mb-4">Kaldığın Yerden Devam Et</h2>
-            {dbUser.progresses.length > 0 ? (
-              <div className="space-y-4">
-                {dbUser.progresses.map((progress) => (
-                  <Card key={progress.id} className="overflow-hidden">
-                    <CardHeader className="pb-2">
-                      <CardDescription>{progress.lesson.course.title}</CardDescription>
-                      <CardTitle className="text-lg">{progress.lesson.title}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex justify-between text-sm mb-2">
-                        <span className="text-muted-foreground">İlerleme</span>
-                        <span className="font-medium text-edu-cyan">
-                          {Math.floor(progress.watchPercentage)}%
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                <Play className="w-5 h-5 text-edu-orange fill-edu-orange" />
+                Kaldığın Yerden Devam Et
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {inProgress.map((prog) => (
+                <Link key={prog.id} href={`/dashboard/lessons/${prog.lesson.id}`}>
+                  <div className="group glass rounded-2xl p-5 border border-white/10 hover:border-edu-cyan/30 hover:shadow-lg hover:shadow-edu-cyan/10 transition-all hover:-translate-y-1 cursor-pointer h-full flex flex-col">
+                    <p className="text-xs text-edu-cyan/80 font-medium mb-1">{prog.lesson.course.title}</p>
+                    <h3 className="text-white font-semibold text-sm leading-snug line-clamp-2 flex-1">
+                      {prog.lesson.title}
+                    </h3>
+                    <div className="mt-4 space-y-2">
+                      <div className="flex items-center justify-between text-xs text-slate-400">
+                        <span>İlerleme</span>
+                        <span className="text-edu-cyan font-bold">%{Math.round(prog.watchPercentage)}</span>
+                      </div>
+                      <Progress
+                        value={prog.watchPercentage}
+                        className="h-1.5 bg-white/10 [&>div]:bg-edu-cyan"
+                      />
+                    </div>
+                    <div className="flex items-center justify-between mt-3">
+                      <div className="flex items-center gap-2 text-xs text-slate-500">
+                        {prog.lesson.duration && (
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {formatDuration(prog.lesson.duration)}
+                          </span>
+                        )}
+                        <span className="flex items-center gap-1">
+                          <HelpCircle className="w-3 h-3" />
+                          {prog.lesson._count.questions} soru
                         </span>
                       </div>
-                      <Progress value={progress.watchPercentage} className="h-2" />
-                    </CardContent>
-                    <CardFooter className="bg-muted/50 py-3">
-                      <Button variant="secondary" className="w-full text-edu-navy">
-                        Dersi Aç →
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <Card className="border-dashed">
-                <CardContent className="flex flex-col items-center justify-center py-10 text-center">
-                  <div className="bg-muted p-4 rounded-full mb-4">
-                    <BookOpen className="h-6 w-6 text-muted-foreground" />
+                      <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-edu-cyan group-hover:translate-x-1 transition-all" />
+                    </div>
                   </div>
-                  <p className="text-muted-foreground">Henüz başladığın bir ders yok.</p>
-                  <Button variant="link" className="text-edu-cyan mt-2">
-                    Kursları Keşfet
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
-          </section>
-        </div>
-
-        {/* Sağ Kolon: Önerilen Kurslar */}
-        <div className="space-y-8">
-          <section>
-            <h2 className="text-xl font-semibold mb-4">Sana Uygun Kurslar</h2>
-            <div className="space-y-4">
-              {recommendedCourses.length > 0 ? (
-                recommendedCourses.map((course) => (
-                  <Card key={course.id} className="hover:border-edu-cyan transition-colors cursor-pointer group">
-                    <CardHeader className="p-4">
-                      <CardTitle className="text-base group-hover:text-edu-cyan transition-colors">
-                        {course.title}
-                      </CardTitle>
-                      <CardDescription className="line-clamp-2 mt-2">
-                        {course.description || `${course.gradeLevel}. sınıf müfredatına uygun konu anlatımları.`}
-                      </CardDescription>
-                    </CardHeader>
-                  </Card>
-                ))
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  Şu an için sınıfınıza uygun kurs bulunmuyor.
-                </p>
-              )}
+                </Link>
+              ))}
             </div>
           </section>
-        </div>
+        )}
+
+        {/* ── Önerilen Dersler (Grid) ── */}
+        <section>
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="text-xl font-bold text-white flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-edu-cyan" />
+              {inProgress.length > 0 ? "Keşfet" : "Sana Özel Dersler"}
+            </h2>
+            <Badge variant="outline" className="border-white/10 text-slate-400 text-xs">
+              {recommendedLessons.length} ders
+            </Badge>
+          </div>
+
+          {recommendedLessons.length === 0 ? (
+            <Card className="bg-white/5 border-white/10">
+              <CardContent className="py-16 text-center text-slate-500">
+                <BookOpen className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                <p className="text-sm">Henüz yayınlanmış ders yok.</p>
+                <p className="text-xs mt-1 opacity-60">Öğretmenler içerik ekledikçe burada görünecek.</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {recommendedLessons.map((lesson, i) => (
+                <Link key={lesson.id} href={`/dashboard/lessons/${lesson.id}`}>
+                  <div className="group relative glass rounded-2xl border border-white/10 hover:border-edu-cyan/40 hover:shadow-xl hover:shadow-edu-cyan/10 transition-all hover:-translate-y-1.5 cursor-pointer overflow-hidden h-full flex flex-col">
+                    {/* Renk şeridi üstte */}
+                    <div
+                      className="h-1 w-full"
+                      style={{
+                        background: `hsl(${(i * 47) % 360}, 70%, 60%)`,
+                      }}
+                    />
+                    <div className="p-5 flex flex-col flex-1">
+                      {/* Sınıf rozeti */}
+                      <div className="flex items-center justify-between mb-3">
+                        <Badge
+                          variant="outline"
+                          className="border-white/10 text-slate-400 text-xs"
+                        >
+                          {lesson.course.gradeLevel}. Sınıf
+                        </Badge>
+                        {lesson._count.questions > 0 && (
+                          <span className="flex items-center gap-1 text-xs text-slate-500">
+                            <HelpCircle className="w-3 h-3" />
+                            {lesson._count.questions}
+                          </span>
+                        )}
+                      </div>
+
+                      <p className="text-xs text-slate-400 mb-1">{lesson.course.title}</p>
+                      <h3 className="text-white font-semibold text-sm leading-snug line-clamp-2 flex-1">
+                        {lesson.title}
+                      </h3>
+
+                      <div className="flex items-center justify-between mt-4">
+                        {lesson.duration ? (
+                          <span className="flex items-center gap-1 text-xs text-slate-500">
+                            <Clock className="w-3 h-3" />
+                            {formatDuration(lesson.duration)}
+                          </span>
+                        ) : (
+                          <span />
+                        )}
+                        <div className="w-8 h-8 rounded-xl bg-edu-cyan/10 border border-edu-cyan/20 flex items-center justify-center group-hover:bg-edu-cyan/20 transition-colors">
+                          <Play className="w-3.5 h-3.5 text-edu-cyan fill-edu-cyan" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </section>
       </div>
     </div>
   );

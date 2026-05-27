@@ -53,6 +53,7 @@ export function QuizInterface({ lessonId, questions, onComplete }: QuizInterface
     correctCount: number; 
     total: number;
     recommendations: Recommendation[];
+    newBadges: any[];
   } | null>(null);
 
   if (!questions || questions.length === 0) {
@@ -125,6 +126,7 @@ export function QuizInterface({ lessonId, questions, onComplete }: QuizInterface
             correctCount: result.data.correctCount,
             total: questions.length,
             recommendations: result.data.recommendations || [],
+            newBadges: result.data.newBadges || [],
           });
           setIsFinished(true);
           if (onComplete) {
@@ -150,6 +152,7 @@ export function QuizInterface({ lessonId, questions, onComplete }: QuizInterface
         correctCount={summaryData.correctCount}
         total={summaryData.total}
         recommendations={summaryData.recommendations}
+        newBadges={summaryData.newBadges}
       />
     );
   }

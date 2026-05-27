@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Trophy, Star, Video, ArrowRight, AlertCircle } from "lucide-react";
+import { AchievementToast } from "./student/AchievementToast";
 
 // ============================================================================
 // Fenz Akademi — Akıllı Sınav Özeti (Quiz Summary)
@@ -22,6 +23,7 @@ interface QuizSummaryProps {
   correctCount: number;
   total: number;
   recommendations?: Recommendation[];
+  newBadges?: any[];
 }
 
 export function QuizSummary({
@@ -30,6 +32,7 @@ export function QuizSummary({
   correctCount,
   total,
   recommendations = [],
+  newBadges = [],
 }: QuizSummaryProps) {
   const router = useRouter();
 
@@ -125,6 +128,9 @@ export function QuizSummary({
           Ana Panele Dön
         </Button>
       </div>
+
+      {/* Oyunlaştırma: Kazanılan yeni rozetler varsa konfetili toast göster */}
+      {newBadges.length > 0 && <AchievementToast badges={newBadges} />}
     </div>
   );
 }

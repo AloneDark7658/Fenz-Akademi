@@ -6,6 +6,7 @@ import {
   checkAnswerSchema,
   submitQuizAnswersSchema,
 } from "@/lib/validations/quiz.schema";
+import { checkAndAwardBadges } from "./gamification";
 
 // ============================================================================
 // Fenz Akademi — Quiz / Soru Değerlendirme Backend (Server Actions)
@@ -187,10 +188,14 @@ export async function submitQuizAction(payload: {
         where: { id: user.id },
         data: {
           points: { increment: earnedXp },
+          // Basit bir streak mantığı: Quiz çözdükçe streak artar (gerçekte tarih kontrolü yapılmalı, şimdilik basit tutuyoruz)
           streak: { increment: 1 },
         },
       }),
     ]);
+
+    // Oyunlaştırma: Yeni rozetleri kontrol et ve ver
+    const newBadges = await checkAndAwardBadges(user.id);
 
     return {
       success: true,
@@ -199,7 +204,8 @@ export async function submitQuizAction(payload: {
         wrongCount,
         score,
         earnedXp,
-        recommendations, // Frontend'de kullanılacak yeni alan
+        recommendations,
+        newBadges, // Frontend'e kazanılan rozetleri dönüyoruz
       },
     };
   } catch (error) {
