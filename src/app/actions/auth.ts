@@ -128,7 +128,7 @@ export async function signUpAction(
     };
     return {
       success: false,
-      error: errorMap[authError.message] ?? "Kayıt sırasında bir hata oluştu. Lütfen tekrar deneyin.",
+      error: errorMap[authError.message] ?? `Kayıt sırasında bir hata oluştu: ${authError.message}`,
       data: { name, email, role, classLevel },
     };
   }
