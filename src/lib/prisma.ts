@@ -7,7 +7,7 @@
 // Prisma 7 "client" engine: @prisma/adapter-pg ile PostgreSQL adapter kullanır.
 // ============================================================================
 
-import { PrismaClient } from ".prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 
 
