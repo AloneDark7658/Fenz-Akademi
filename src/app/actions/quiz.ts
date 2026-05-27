@@ -121,7 +121,8 @@ export async function submitQuizAction(payload: {
     const wrongLessonsMap = new Map<string, { title: string; count: number }>();
 
     // Performans için soruları map'e alalım
-    const questionMap = new Map(questions.map((q) => [q.id, q]));
+    type QuestionItem = { id: string; correctAnswer: string; lesson: { id: string; title: string } | null };
+    const questionMap = new Map<string, QuestionItem>(questions.map((q) => [q.id, q as QuestionItem]));
 
     for (const answer of answers) {
       const q = questionMap.get(answer.questionId);
