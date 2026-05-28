@@ -28,19 +28,19 @@ export default function LandingPage() {
 
   const features = [
     {
-      icon: <Gamepad2 className="w-10 h-10 text-edu-cyan" />,
+      icon: <Gamepad2 className="w-8 h-8 md:w-10 md:h-10 text-edu-cyan" />,
       title: "Oyunlaştırılmış Eğitim",
       description: "Soru çözdükçe rozetler kazanın, serinizi (streak) koruyun ve konfeti yağmurları eşliğinde öğrenmeyi eğlenceye dönüştürün.",
       glow: "group-hover:shadow-[0_0_30px_rgba(34,211,238,0.2)] border-cyan-500/20 group-hover:border-cyan-500/50"
     },
     {
-      icon: <Film className="w-10 h-10 text-purple-400" />,
+      icon: <Film className="w-8 h-8 md:w-10 md:h-10 text-purple-400" />,
       title: "Sinema Kalitesinde Dersler",
       description: "Netflix altyapısı (HLS) ile internet hızınıza adapte olan, kesintisiz ve korsana karşı korumalı video dersleri deneyimleyin.",
       glow: "group-hover:shadow-[0_0_30px_rgba(168,85,247,0.2)] border-purple-500/20 group-hover:border-purple-500/50"
     },
     {
-      icon: <Users className="w-10 h-10 text-orange-400" />,
+      icon: <Users className="w-8 h-8 md:w-10 md:h-10 text-orange-400" />,
       title: "Akıllı Veli Takibi",
       description: "Gerçek zamanlı grafikler ve özel davet kodu sistemiyle çocuğunuzun gelişimini saniye saniye şık panellerden izleyin.",
       glow: "group-hover:shadow-[0_0_30px_rgba(249,115,22,0.2)] border-orange-500/20 group-hover:border-orange-500/50"
@@ -58,7 +58,7 @@ export default function LandingPage() {
       </div>
 
       {/* ─── Hero Section ─── */}
-      <section className="relative z-10 flex flex-col items-center justify-center min-h-[90vh] px-4 pt-20 text-center">
+      <section className="relative z-10 flex flex-col items-center justify-center min-h-[75vh] md:min-h-[90vh] px-4 pt-16 md:pt-20 text-center">
         <motion.div
           initial="hidden"
           animate="visible"
@@ -74,7 +74,7 @@ export default function LandingPage() {
           {/* Dev Başlık */}
           <motion.h1
             variants={fadeInUp}
-            className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tight mb-6"
+            className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black tracking-tight mb-4 md:mb-6"
           >
             Fen Bilimlerinde <br className="hidden md:block" />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500">
@@ -86,17 +86,17 @@ export default function LandingPage() {
           {/* Slogan / Açıklama */}
           <motion.p
             variants={fadeInUp}
-            className="text-lg md:text-2xl text-slate-400 mb-10 font-medium max-w-2xl leading-relaxed"
+            className="text-base sm:text-lg md:text-xl lg:text-2xl text-slate-400 mb-8 md:mb-10 font-medium max-w-2xl leading-relaxed"
           >
             Ortaokul fen bilimleri artık çok daha eğlenceli. Fenz Akademi ile ezberci eğitime son verin, konfeti yağmurları ve interaktif deneylerle başarıya uçun.
             <Sparkles className="inline-block w-6 h-6 ml-2 text-yellow-400" />
           </motion.p>
 
           {/* CTA Butonları */}
-          <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-6 w-full sm:w-auto">
+          <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4 sm:gap-6 w-full sm:w-auto">
             <Button
               size="lg"
-              className="group bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-lg px-10 py-7 rounded-full shadow-[0_0_30px_rgba(34,211,238,0.3)] transition-all duration-300 hover:shadow-[0_0_40px_rgba(34,211,238,0.5)] hover:-translate-y-1"
+              className="group bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-base md:text-lg px-6 py-6 md:px-10 md:py-7 rounded-full shadow-[0_0_30px_rgba(34,211,238,0.3)] transition-all duration-300 hover:shadow-[0_0_40px_rgba(34,211,238,0.5)] hover:-translate-y-1"
               onClick={() => router.push("/register")}
             >
               Hemen Ücretsiz Başla
@@ -106,7 +106,7 @@ export default function LandingPage() {
             <Button
               size="lg"
               variant="outline"
-              className="bg-white/5 border border-white/10 text-white hover:bg-white/10 font-bold text-lg px-10 py-7 rounded-full transition-all duration-300 hover:-translate-y-1"
+              className="bg-white/5 border border-white/10 text-white hover:bg-white/10 font-bold text-base md:text-lg px-6 py-6 md:px-10 md:py-7 rounded-full transition-all duration-300 hover:-translate-y-1"
               onClick={() => router.push("/login")}
             >
               Giriş Yap
@@ -126,20 +126,20 @@ export default function LandingPage() {
             <p className="text-slate-400 text-lg">Sıradan platformları unutun, tamamen size özel bir teknoloji.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
             {features.map((feature, idx) => (
               <div
                 key={idx}
-                className={`group relative bg-white/5 border rounded-3xl p-8 transition-all duration-300 overflow-hidden ${feature.glow}`}
+                className={`group relative bg-white/5 border rounded-3xl p-6 md:p-8 transition-all duration-300 overflow-hidden ${feature.glow}`}
               >
                 <div className="relative z-10">
-                  <div className="mb-6 p-4 inline-block bg-slate-950/50 rounded-2xl border border-white/5 shadow-inner">
+                  <div className="mb-4 md:mb-6 p-3 md:p-4 inline-block bg-slate-950/50 rounded-2xl border border-white/5 shadow-inner">
                     {feature.icon}
                   </div>
-                  <h3 className="text-2xl font-bold text-white mb-3 tracking-tight">
+                  <h3 className="text-xl md:text-2xl font-bold text-white mb-2 md:mb-3 tracking-tight">
                     {feature.title}
                   </h3>
-                  <p className="text-slate-400 leading-relaxed">
+                  <p className="text-sm md:text-base text-slate-400 leading-relaxed">
                     {feature.description}
                   </p>
                 </div>
