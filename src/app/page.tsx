@@ -28,19 +28,19 @@ export default function LandingPage() {
 
   const features = [
     {
-      icon: <Gamepad2 className="w-8 h-8 md:w-10 md:h-10 text-edu-cyan" />,
+      icon: <Gamepad2 className="w-5 h-5 sm:w-6 sm:h-6 md:w-10 md:h-10 text-edu-cyan" />,
       title: "Oyunlaştırılmış Eğitim",
       description: "Eğlenerek öğren, rozet kazan ve öğrenme serini koru.",
       glow: "group-hover:shadow-[0_0_30px_rgba(34,211,238,0.2)] border-cyan-500/20 group-hover:border-cyan-500/50"
     },
     {
-      icon: <Film className="w-8 h-8 md:w-10 md:h-10 text-purple-400" />,
+      icon: <Film className="w-5 h-5 sm:w-6 sm:h-6 md:w-10 md:h-10 text-purple-400" />,
       title: "Sinema Kalitesinde Dersler",
       description: "Netflix altyapısıyla kesintisiz ve yüksek çözünürlüklü video deneyimi.",
       glow: "group-hover:shadow-[0_0_30px_rgba(168,85,247,0.2)] border-purple-500/20 group-hover:border-purple-500/50"
     },
     {
-      icon: <Users className="w-8 h-8 md:w-10 md:h-10 text-orange-400" />,
+      icon: <Users className="w-5 h-5 sm:w-6 sm:h-6 md:w-10 md:h-10 text-orange-400" />,
       title: "Akıllı Veli Takibi",
       description: "Gerçek zamanlı grafiklerle öğrenci gelişimini saniye saniye izle.",
       glow: "group-hover:shadow-[0_0_30px_rgba(249,115,22,0.2)] border-orange-500/20 group-hover:border-orange-500/50"
@@ -96,7 +96,7 @@ export default function LandingPage() {
           <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
             <Button
               size="lg"
-              className="group bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-sm sm:text-base md:text-lg px-6 py-3 h-12 md:h-auto md:px-10 md:py-7 rounded-full shadow-[0_0_30px_rgba(34,211,238,0.3)] transition-all duration-300 hover:shadow-[0_0_40px_rgba(34,211,238,0.5)] hover:-translate-y-1"
+              className="group bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-sm md:text-base px-6 py-3 h-12 md:h-14 md:px-8 md:py-4 rounded-full shadow-[0_0_30px_rgba(34,211,238,0.3)] transition-all duration-300 hover:shadow-[0_0_40px_rgba(34,211,238,0.5)] hover:-translate-y-1"
               onClick={() => router.push("/register")}
             >
               Hemen Ücretsiz Başla
@@ -106,7 +106,7 @@ export default function LandingPage() {
             <Button
               size="lg"
               variant="outline"
-              className="bg-white/5 border border-white/10 text-white hover:bg-white/10 font-bold text-sm sm:text-base md:text-lg px-6 py-3 h-12 md:h-auto md:px-10 md:py-7 rounded-full transition-all duration-300 hover:-translate-y-1"
+              className="bg-white/5 border border-white/10 text-white hover:bg-white/10 font-bold text-sm md:text-base px-6 py-3 h-12 md:h-14 md:px-8 md:py-4 rounded-full transition-all duration-300 hover:-translate-y-1"
               onClick={() => router.push("/login")}
             >
               Giriş Yap
@@ -126,20 +126,20 @@ export default function LandingPage() {
             <p className="text-slate-400 text-lg">Sıradan platformları unutun, tamamen size özel bir teknoloji.</p>
           </div>
 
-          <div className="flex md:grid md:grid-cols-3 gap-4 md:gap-8 overflow-x-auto snap-x snap-mandatory hide-scrollbar pb-6 -mx-4 px-4 md:mx-0 md:px-0 md:overflow-visible">
+          <div className="grid grid-cols-3 gap-2 sm:gap-4 md:gap-8">
             {features.map((feature, idx) => (
               <div
                 key={idx}
-                className={`min-w-[85vw] sm:min-w-[300px] md:min-w-0 snap-center shrink-0 group relative bg-white/5 border rounded-3xl p-6 md:p-8 transition-all duration-300 overflow-hidden ${feature.glow}`}
+                className={`group relative bg-white/5 border rounded-2xl md:rounded-3xl p-3 sm:p-4 md:p-8 transition-all duration-300 overflow-hidden ${feature.glow}`}
               >
-                <div className="relative z-10">
-                  <div className="mb-4 md:mb-6 p-3 md:p-4 inline-block bg-slate-950/50 rounded-2xl border border-white/5 shadow-inner">
+                <div className="relative z-10 flex flex-col items-center text-center md:items-start md:text-left">
+                  <div className="mb-2 md:mb-6 p-2 md:p-4 inline-block bg-slate-950/50 rounded-xl md:rounded-2xl border border-white/5 shadow-inner">
                     {feature.icon}
                   </div>
-                  <h3 className="text-xl md:text-2xl font-bold text-white mb-2 md:mb-3 tracking-tight">
+                  <h3 className="text-[11px] sm:text-sm md:text-2xl font-bold text-white mb-1 md:mb-3 tracking-tight leading-tight">
                     {feature.title}
                   </h3>
-                  <p className="text-sm md:text-base text-slate-400 leading-relaxed">
+                  <p className="text-[9px] sm:text-xs md:text-base text-slate-400 leading-tight md:leading-relaxed">
                     {feature.description}
                   </p>
                 </div>
