@@ -270,6 +270,15 @@ body {
   background: var(--foreground);
 }
 
+/* Hide scrollbar for carousel but keep functionality */
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 .dark {
   --background: #0b1120;
   --foreground: oklch(0.985 0 0);
