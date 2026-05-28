@@ -11,6 +11,7 @@ import {
   LogOut,
   Rocket,
   Video,
+  Radio,
 } from "lucide-react";
 import { signOutAction } from "@/app/actions/auth";
 import { cn } from "@/lib/utils";
@@ -21,6 +22,7 @@ const NAV_ITEMS = [
   { href: "/teacher/questions", label: "Sorular", icon: BookOpen },
   { href: "/teacher/exams", label: "Sınavlar", icon: ClipboardList },
   { href: "/teacher/students", label: "Öğrenciler", icon: Users },
+  { href: "/teacher/live", label: "Canlı Dersler", icon: Radio },
 ];
 
 export function TeacherSidebar() {

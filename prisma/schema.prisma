@@ -34,6 +34,13 @@ enum QuestionStatus {
   PUBLISHED
 }
 
+/// Canlı ders oturumu durumu
+enum LiveSessionStatus {
+  SCHEDULED  /// Planlanmış, henüz başlamadı
+  LIVE       /// Devam ediyor
+  ENDED      /// Sona erdi
+}
+
 // ─── Kullanıcı Modeli ───────────────────────────────────────────────────────
 
 /// Platform kullanıcısı (öğrenci, öğretmen, veli veya yönetici)
@@ -53,11 +60,15 @@ model User {
   updatedAt    DateTime @updatedAt @map("updated_at")
 
   // İlişkiler
-  parent      User?        @relation("ParentStudent", fields: [parentId], references: [id])
-  children    User[]       @relation("ParentStudent")
-  progresses  Progress[]
-  quizResults QuizResult[]
-  userBadges  UserBadge[]
+  parent          User?            @relation("ParentStudent", fields: [parentId], references: [id])
+  children        User[]           @relation("ParentStudent")
+  progresses      Progress[]
+  quizResults     QuizResult[]
+  userBadges      UserBadge[]
+  // Canlı ders ilişkileri
+  taughtSessions  LiveSession[]    @relation("TeacherSessions")
+  pollVotes       LivePollVote[]   @relation("StudentPollVotes")
+  consents        StudentConsent[] @relation("StudentConsents")
 
   @@index([role])
   @@index([classLevel])
@@ -79,7 +90,8 @@ model Course {
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   // İlişkiler
-  videoLessons VideoLesson[]
+  videoLessons  VideoLesson[]
+  liveSessions  LiveSession[]
 
   @@index([gradeLevel])
   @@map("courses")
@@ -209,4 +221,84 @@ model UserBadge {
   @@unique([userId, badgeId]) // Bir kullanıcı aynı rozeti bir kez kazanabilir
   @@index([userId])
   @@map("user_badges")
+}
+
+// ─── Canlı Ders Modelleri ───────────────────────────────────────────────────
+
+/// Öğretmenin oluşturduğu canlı ders oturumu
+model LiveSession {
+  id           String            @id @default(uuid())
+  title        String
+  scheduledFor DateTime          @map("scheduled_for")
+  roomName     String            @unique @map("room_name") /// Daily.co oda adı (benzersiz)
+  status       LiveSessionStatus @default(SCHEDULED)
+  teacherId    String            @map("teacher_id")
+  courseId     String?           @map("course_id")
+  createdAt    DateTime          @default(now()) @map("created_at")
+  updatedAt    DateTime          @updatedAt @map("updated_at")
+
+  // İlişkiler
+  teacher  User             @relation("TeacherSessions", fields: [teacherId], references: [id])
+  course   Course?          @relation(fields: [courseId], references: [id])
+  polls    LivePoll[]
+  consents StudentConsent[]
+
+  @@index([teacherId])
+  @@index([status])
+  @@map("live_sessions")
+}
+
+/// Öğretmenin canlı ders sırasında oluşturduğu anket sorusu
+model LivePoll {
+  id          String   @id @default(uuid())
+  sessionId   String   @map("session_id")
+  question    String   /// Soru metni
+  options     Json     /// Şıklar dizisi: ["A şıkkı", "B şıkkı", ...] (maks 4)
+  isActive    Boolean  @default(true) @map("is_active")    /// Öğrenciler oy verebilir mi
+  isCompleted Boolean  @default(false) @map("is_completed") /// Sonuçlar gösterilsin mi
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // İlişkiler
+  session LiveSession    @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  votes   LivePollVote[]
+
+  @@index([sessionId])
+  @@index([sessionId, isActive])
+  @@map("live_polls")
+}
+
+/// Öğrencinin anket sorusuna verdiği oy
+model LivePollVote {
+  id             String   @id @default(uuid())
+  pollId         String   @map("poll_id")
+  studentId      String   @map("student_id")
+  selectedOption Int      @map("selected_option") /// Şık indeksi: 0, 1, 2 veya 3
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  // İlişkiler
+  poll    LivePoll @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  student User     @relation("StudentPollVotes", fields: [studentId], references: [id])
+
+  @@unique([pollId, studentId]) /// Bir öğrenci bir ankete sadece 1 oy verebilir
+  @@index([pollId])
+  @@map("live_poll_votes")
+}
+
+/// KVKK kapsamında öğrenci onay kaydı — hukuki loglama
+model StudentConsent {
+  id          String   @id @default(uuid())
+  studentId   String   @map("student_id")
+  sessionId   String   @map("session_id")
+  consentType String   @map("consent_type") /// Örn: "KVKK_LIVE_CLASS"
+  ipAddress   String?  @map("ip_address")   /// Hukuki kanıt için IP adresi
+  userAgent   String?  @map("user_agent")   /// Tarayıcı/cihaz bilgisi
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // İlişkiler
+  student User        @relation("StudentConsents", fields: [studentId], references: [id])
+  session LiveSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@index([sessionId])
+  @@map("student_consents")
 }
