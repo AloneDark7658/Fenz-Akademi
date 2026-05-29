@@ -33,9 +33,10 @@ export default async function StudentLivePage() {
         in: ["SCHEDULED", "LIVE"]
       },
       ...(dbUser.classLevel ? {
-        course: {
-          gradeLevel: dbUser.classLevel
-        }
+        OR: [
+          { courseId: null },
+          { course: { gradeLevel: dbUser.classLevel } }
+        ]
       } : {})
     },
     include: {
