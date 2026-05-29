@@ -105,8 +105,7 @@ export default function LandingPage() {
             
             <Button
               size="lg"
-              variant="outline"
-              className="bg-white/5 border border-white/10 text-white hover:bg-white/10 font-bold text-sm md:text-base px-6 py-3 h-12 md:h-14 md:px-8 md:py-4 rounded-full transition-all duration-300 hover:-translate-y-1 w-full sm:w-auto"
+              className="bg-gradient-to-r from-edu-orange to-edu-orange-dark hover:from-edu-orange-light hover:to-edu-orange text-white font-bold text-sm md:text-base px-6 py-3 h-12 md:h-14 md:px-8 md:py-4 rounded-full shadow-[0_0_30px_rgba(255,107,53,0.3)] hover:shadow-[0_0_40px_rgba(255,107,53,0.5)] transition-all duration-300 hover:-translate-y-1 w-full sm:w-auto"
               onClick={() => router.push("/login")}
             >
               Giriş Yap

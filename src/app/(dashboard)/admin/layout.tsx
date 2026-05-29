@@ -22,7 +22,7 @@ export default async function AdminLayout({
   });
 
   if (dbUser?.role !== "ADMIN") {
-    redirect("/dashboard/student"); // Yetkisizse öğrenci paneline yolla
+    redirect("/student"); // Yetkisizse öğrenci paneline yolla
   }
 
   return (

@@ -5,10 +5,10 @@
 // yetkilendirme uygular. Yetkisiz erişim denemeleri yönlendirilir.
 //
 // Güvenlik Kuralları:
-// 1. /dashboard/student/* → sadece STUDENT rolü
-// 2. /dashboard/teacher/* → sadece TEACHER rolü
-// 3. /dashboard/parent/*  → sadece PARENT rolü
-// 4. /dashboard/admin/*   → sadece ADMIN rolü
+// 1. /student/* → sadece STUDENT rolü
+// 2. /teacher/* → sadece TEACHER rolü
+// 3. /parent/*  → sadece PARENT rolü
+// 4. /admin/*   → sadece ADMIN rolü
 // 5. /api/* → geçerli oturum gerektirir (public API'ler hariç)
 // 6. Auth sayfaları → oturum açıksa dashboard'a yönlendirilir
 // ============================================================================
@@ -26,18 +26,18 @@ const AUTH_ROUTES = ["/login", "/register"];
 
 /** Rol bazlı korumalı rota eşlemeleri */
 const ROLE_ROUTE_MAP: Record<string, string[]> = {
-  "/dashboard/student": ["STUDENT"],
-  "/dashboard/teacher": ["TEACHER"],
-  "/dashboard/parent": ["PARENT"],
-  "/dashboard/admin": ["ADMIN"],
+  "/student": ["STUDENT"],
+  "/teacher": ["TEACHER"],
+  "/parent": ["PARENT"],
+  "/admin": ["ADMIN"],
 };
 
 /** Rol bazlı varsayılan yönlendirme */
 const ROLE_DASHBOARD_MAP: Record<string, string> = {
-  STUDENT: "/dashboard/student",
-  TEACHER: "/dashboard/teacher",
-  PARENT: "/dashboard/parent",
-  ADMIN: "/dashboard/admin",
+  STUDENT: "/student",
+  TEACHER: "/teacher",
+  PARENT: "/parent",
+  ADMIN: "/admin",
 };
 
 // ─── Yardımcı Fonksiyonlar ──────────────────────────────────────────────────
@@ -78,7 +78,7 @@ export async function proxy(request: NextRequest) {
       const userRole =
         (user.user_metadata?.role as string) || "STUDENT";
       const dashboardPath =
-        ROLE_DASHBOARD_MAP[userRole] || "/dashboard/student";
+        ROLE_DASHBOARD_MAP[userRole] || "/student";
       const url = request.nextUrl.clone();
       url.pathname = dashboardPath;
       return NextResponse.redirect(url);
@@ -104,7 +104,7 @@ export async function proxy(request: NextRequest) {
     if (!requiredRoles.includes(userRole)) {
       // Yetkisiz erişim — kullanıcıyı kendi dashboard'una yönlendir
       const dashboardPath =
-        ROLE_DASHBOARD_MAP[userRole] || "/dashboard/student";
+        ROLE_DASHBOARD_MAP[userRole] || "/student";
       const url = request.nextUrl.clone();
       url.pathname = dashboardPath;
       return NextResponse.redirect(url);

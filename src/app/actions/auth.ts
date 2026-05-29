@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createSupabaseServerClient, createSupabaseAdminClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
@@ -264,5 +265,6 @@ export async function signInAction(
 export async function signOutAction(): Promise<never> {
   const supabase = await createSupabaseServerClient();
   await supabase.auth.signOut();
+  revalidatePath("/", "layout");
   redirect("/login");
 }
