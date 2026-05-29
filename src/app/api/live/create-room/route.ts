@@ -70,12 +70,9 @@ export async function POST(req: NextRequest) {
         privacy: "private", // Token olmadan girilemez
         properties: {
           exp: expiryTime,
-          max_participants: 150,
           enable_chat: false,       // Kendi UI'mızda yönetiyoruz
           enable_knocking: false,
           enable_screenshare: true,
-          // Ekran paylaşımı: metin okunabilirliği için optimize
-          screenshare_content_hint: "text",
           enable_video_processing_ui: false,
           start_video_off: false,
           start_audio_off: true, // Öğrenciler başlangıçta sessiz
