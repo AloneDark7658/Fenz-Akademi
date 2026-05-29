@@ -32,12 +32,25 @@ export default async function StudentLivePage() {
       status: {
         in: ["SCHEDULED", "LIVE"]
       },
-      ...(dbUser.classLevel ? {
-        OR: [
-          { courseId: null },
-          { course: { gradeLevel: dbUser.classLevel } }
-        ]
-      } : {})
+      OR: [
+        // Normal (gruplanmamış) dersler — öğrencinin sınıfına uyuyorsa (veya sınıfı belli değilse) göster
+        {
+          parentSessionId: null, // Alt grup değil
+          childSessions: { none: {} }, // Ana grup (parent) değil
+          ...(dbUser.classLevel ? {
+            OR: [
+              { courseId: null },
+              { course: { gradeLevel: dbUser.classLevel } }
+            ]
+          } : {})
+        },
+        // Veya gruplanmış derslerden sadece öğrencinin atandığı alt grup
+        {
+          members: {
+            some: { studentId: user.id }
+          }
+        }
+      ]
     },
     include: {
       teacher: { select: { name: true } },

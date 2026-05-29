@@ -49,6 +49,12 @@ export async function POST(req: NextRequest) {
         roomName: true,
         status: true,
         teacherId: true,
+        parentSessionId: true,
+        _count: { select: { childSessions: true } },
+        members: {
+          where: { studentId: user.id },
+          select: { id: true }
+        }
       },
     });
     if (!session) {
@@ -57,8 +63,11 @@ export async function POST(req: NextRequest) {
     if (session.status === "ENDED") {
       return NextResponse.json({ error: "Bu ders oturumu sona ermiştir." }, { status: 410 });
     }
+    if (session._count.childSessions > 0) {
+      return NextResponse.json({ error: "Bu bir ana gruptur, doğrudan katılamazsınız. Lütfen alt gruplardan birini seçin." }, { status: 400 });
+    }
 
-    // 4. Kullanıcı rolünü belirle
+    // 4. Kullanıcı rolünü belirle ve grup yetkisini kontrol et
     const dbUser = await prisma.user.findUnique({
       where: { id: user.id },
       select: { role: true, name: true },
@@ -67,6 +76,11 @@ export async function POST(req: NextRequest) {
       dbUser?.role === "TEACHER" ||
       dbUser?.role === "ADMIN" ||
       session.teacherId === user.id;
+
+    // Öğrenci ise ve bu bir alt grupsa, atandığı grupta olup olmadığını kontrol et
+    if (!isTeacher && session.parentSessionId && session.members.length === 0) {
+      return NextResponse.json({ error: "Bu gruba atanmamışsınız." }, { status: 403 });
+    }
 
     // 5. Daily.co meeting token üret
     // Token 4 saat geçerli, sadece bu odaya özgü

@@ -60,15 +60,16 @@ model User {
   updatedAt    DateTime @updatedAt @map("updated_at")
 
   // İlişkiler
-  parent          User?            @relation("ParentStudent", fields: [parentId], references: [id])
-  children        User[]           @relation("ParentStudent")
+  parent          User?                @relation("ParentStudent", fields: [parentId], references: [id])
+  children        User[]               @relation("ParentStudent")
   progresses      Progress[]
   quizResults     QuizResult[]
   userBadges      UserBadge[]
   // Canlı ders ilişkileri
-  taughtSessions  LiveSession[]    @relation("TeacherSessions")
-  pollVotes       LivePollVote[]   @relation("StudentPollVotes")
-  consents        StudentConsent[] @relation("StudentConsents")
+  taughtSessions  LiveSession[]        @relation("TeacherSessions")
+  pollVotes       LivePollVote[]       @relation("StudentPollVotes")
+  consents        StudentConsent[]     @relation("StudentConsents")
+  sessionMembers  LiveSessionMember[]  @relation("StudentSessions")
 
   @@index([role])
   @@index([classLevel])
@@ -227,24 +228,35 @@ model UserBadge {
 
 /// Öğretmenin oluşturduğu canlı ders oturumu
 model LiveSession {
-  id           String            @id @default(uuid())
-  title        String
-  scheduledFor DateTime          @map("scheduled_for")
-  roomName     String            @unique @map("room_name") /// Daily.co oda adı (benzersiz)
-  status       LiveSessionStatus @default(SCHEDULED)
-  teacherId    String            @map("teacher_id")
-  courseId     String?           @map("course_id")
-  createdAt    DateTime          @default(now()) @map("created_at")
-  updatedAt    DateTime          @updatedAt @map("updated_at")
+  id              String            @id @default(uuid())
+  title           String
+  scheduledFor    DateTime          @map("scheduled_for")
+  roomName        String            @unique @map("room_name") /// Daily.co oda adı (benzersiz)
+  status          LiveSessionStatus @default(SCHEDULED)
+  teacherId       String            @map("teacher_id")
+  courseId        String?           @map("course_id")
+  /// Sınıf seviyesi (5-8) — sınıf bazlı gruplama için
+  gradeLevel      Int?              @map("grade_level")
+  /// Grup numarası (1, 2, 3...) — aynı sınıfın alt grupları için
+  groupIndex      Int?              @map("group_index")
+  /// Ana oturum ID'si — alt grupları birbirine bağlar
+  parentSessionId String?           @map("parent_session_id")
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
 
   // İlişkiler
-  teacher  User             @relation("TeacherSessions", fields: [teacherId], references: [id])
-  course   Course?          @relation(fields: [courseId], references: [id])
-  polls    LivePoll[]
-  consents StudentConsent[]
+  teacher       User                @relation("TeacherSessions", fields: [teacherId], references: [id])
+  course        Course?             @relation(fields: [courseId], references: [id])
+  polls         LivePoll[]
+  consents      StudentConsent[]
+  members       LiveSessionMember[]
+  childSessions LiveSession[]       @relation("SessionGroups")
+  parentSession LiveSession?        @relation("SessionGroups", fields: [parentSessionId], references: [id])
 
   @@index([teacherId])
   @@index([status])
+  @@index([gradeLevel])
+  @@index([parentSessionId])
   @@map("live_sessions")
 }
 
@@ -282,6 +294,22 @@ model LivePollVote {
   @@unique([pollId, studentId]) /// Bir öğrenci bir ankete sadece 1 oy verebilir
   @@index([pollId])
   @@map("live_poll_votes")
+}
+
+/// Bir canlı ders grubuna atanan öğrenci kaydı
+model LiveSessionMember {
+  id        String      @id @default(uuid())
+  sessionId String      @map("session_id")
+  studentId String      @map("student_id")
+  createdAt DateTime    @default(now()) @map("created_at")
+
+  session   LiveSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  student   User        @relation("StudentSessions", fields: [studentId], references: [id])
+
+  @@unique([sessionId, studentId])
+  @@index([sessionId])
+  @@index([studentId])
+  @@map("live_session_members")
 }
 
 /// KVKK kapsamında öğrenci onay kaydı — hukuki loglama
