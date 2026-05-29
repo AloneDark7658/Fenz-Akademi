@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { type Role } from "@/types";
 
 import { updateUserRole, adminCreateUser, adminAssignParent } from "@/app/actions/admin";
-import { Search, ShieldAlert, CheckCircle2, User as UserIcon, Loader2, Plus, X } from "lucide-react";
+import { Search, ShieldAlert, CheckCircle2, User as UserIcon, Loader2, Plus, X, Save } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
 type UserData = {
@@ -19,6 +19,10 @@ type UserData = {
 };
 
 export function UsersTable({ initialUsers }: { initialUsers: UserData[] }) {
+  const [users, setUsers] = useState<UserData[]>(initialUsers);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [isSaving, startSaving] = useTransition();
+
   const [search, setSearch] = useState("");
   const [isPending, startTransition] = useTransition();
   const [toastMsg, setToastMsg] = useState("");
@@ -27,36 +31,55 @@ export function UsersTable({ initialUsers }: { initialUsers: UserData[] }) {
     name: "", email: "", password: "", role: "STUDENT" as Role, classLevel: "5", parentId: ""
   });
 
-  const filteredUsers = initialUsers.filter(u => 
+  useEffect(() => {
+    setUsers(initialUsers);
+    setHasChanges(false);
+  }, [initialUsers]);
+
+  const filteredUsers = users.filter(u => 
     u.name.toLowerCase().includes(search.toLowerCase()) || 
     u.email.toLowerCase().includes(search.toLowerCase())
   );
 
-  const parents = initialUsers.filter(u => u.role === "PARENT");
+  const parents = users.filter(u => u.role === "PARENT");
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
     setTimeout(() => setToastMsg(""), 3000);
   };
 
-  const handleRoleChange = (userId: string, newRole: Role) => {
-    startTransition(async () => {
-      const result = await updateUserRole(userId, newRole);
-      if (result.success) {
-        showToast("Rol başarıyla güncellendi!");
-      } else {
-        showToast(result.error || "Hata oluştu.");
-      }
-    });
+  const handleRoleChangeLocal = (userId: string, newRole: Role) => {
+    setUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
+    setHasChanges(true);
   };
 
-  const handleParentChange = (studentId: string, parentId: string) => {
-    startTransition(async () => {
-      const result = await adminAssignParent(studentId, parentId || null);
-      if (result.success) {
-        showToast("Veli başarıyla güncellendi!");
+  const handleParentChangeLocal = (userId: string, newParentId: string) => {
+    setUsers(prev => prev.map(u => u.id === userId ? { ...u, parentId: newParentId } : u));
+    setHasChanges(true);
+  };
+
+  const handleSaveChanges = () => {
+    startSaving(async () => {
+      let hasError = false;
+      for (const u of users) {
+        const orig = initialUsers.find(x => x.id === u.id);
+        if (!orig) continue;
+        
+        if (orig.role !== u.role) {
+          const r = await updateUserRole(u.id, u.role);
+          if (!r.success) hasError = true;
+        }
+        if (orig.parentId !== u.parentId) {
+          const r = await adminAssignParent(u.id, u.parentId || null);
+          if (!r.success) hasError = true;
+        }
+      }
+      
+      if (!hasError) {
+        showToast("Tüm değişiklikler başarıyla kaydedildi!");
+        setHasChanges(false);
       } else {
-        showToast(result.error || "Hata oluştu.");
+        showToast("Bazı değişiklikler kaydedilirken hata oluştu.");
       }
     });
   };
@@ -97,6 +120,16 @@ export function UsersTable({ initialUsers }: { initialUsers: UserData[] }) {
           />
         </div>
         <div className="flex items-center gap-3 w-full sm:w-auto">
+          {hasChanges && (
+            <button
+              onClick={handleSaveChanges}
+              disabled={isSaving}
+              className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-400 hover:to-indigo-400 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-lg shadow-blue-500/20 transition-all whitespace-nowrap disabled:opacity-50"
+            >
+              {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              Değişiklikleri Kaydet
+            </button>
+          )}
           <div className="text-sm text-slate-400 font-semibold bg-white/5 px-4 py-2 rounded-xl border border-white/10 whitespace-nowrap">
             Toplam {filteredUsers.length} kullanıcı
           </div>
@@ -142,9 +175,9 @@ export function UsersTable({ initialUsers }: { initialUsers: UserData[] }) {
                     </td>
                     <td className="px-6 py-4">
                       <select
-                        disabled={isPending}
+                        disabled={isSaving}
                         value={user.role}
-                        onChange={(e) => handleRoleChange(user.id, e.target.value as Role)}
+                        onChange={(e) => handleRoleChangeLocal(user.id, e.target.value as Role)}
                         className={`bg-slate-900 border text-xs font-bold rounded-lg px-3 py-1.5 outline-none transition-colors appearance-none cursor-pointer
                           ${user.role === "ADMIN" ? "border-red-500/50 text-red-400 focus:border-red-400" : ""}
                           ${user.role === "TEACHER" ? "border-cyan-500/50 text-cyan-400 focus:border-cyan-400" : ""}
@@ -161,9 +194,9 @@ export function UsersTable({ initialUsers }: { initialUsers: UserData[] }) {
                     <td className="px-6 py-4">
                       {user.role === "STUDENT" ? (
                         <select
-                          disabled={isPending}
+                          disabled={isSaving}
                           value={user.parentId || ""}
-                          onChange={(e) => handleParentChange(user.id, e.target.value)}
+                          onChange={(e) => handleParentChangeLocal(user.id, e.target.value)}
                           className="bg-slate-900 border border-slate-700/50 text-slate-400 text-xs font-semibold rounded-lg px-3 py-1.5 outline-none transition-colors appearance-none cursor-pointer hover:border-slate-500 focus:border-cyan-500 w-full max-w-[150px]"
                         >
                           <option value="">-- Veli Seç --</option>
@@ -309,3 +342,4 @@ export function UsersTable({ initialUsers }: { initialUsers: UserData[] }) {
     </div>
   );
 }
+
