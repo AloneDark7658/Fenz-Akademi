@@ -277,3 +277,79 @@ export async function getTeacherSessionsAction() {
 
   return { sessions };
 }
+
+// ─── 9. Oturumu Düzenle (Öğretmen) ──────────────────────────────────────────
+export async function updateSessionAction(
+  sessionId: string,
+  data: { title?: string; scheduledFor?: string; courseId?: string | null }
+) {
+  const user = await getCurrentUser();
+  if (!user || !["TEACHER", "ADMIN"].includes(user.role)) {
+    return { error: "Yetkisiz işlem." };
+  }
+
+  const session = await prisma.liveSession.findUnique({
+    where: { id: sessionId },
+    select: { teacherId: true, status: true },
+  });
+
+  if (!session || session.teacherId !== user.id) {
+    return { error: "Bu oturumu düzenleme yetkiniz yok." };
+  }
+
+  if (session.status === "ENDED") {
+    return { error: "Sona eren bir oturum düzenlenemez." };
+  }
+
+  await prisma.liveSession.update({
+    where: { id: sessionId },
+    data: {
+      ...(data.title && { title: data.title.trim() }),
+      ...(data.scheduledFor && { scheduledFor: new Date(data.scheduledFor) }),
+      ...(data.courseId !== undefined && { courseId: data.courseId || null }),
+    },
+  });
+
+  revalidatePath("/teacher/live");
+  return { success: true };
+}
+
+// ─── 10. Oturumu Sil (Öğretmen) ─────────────────────────────────────────────
+export async function deleteSessionAction(sessionId: string) {
+  const user = await getCurrentUser();
+  if (!user || !["TEACHER", "ADMIN"].includes(user.role)) {
+    return { error: "Yetkisiz işlem." };
+  }
+
+  const session = await prisma.liveSession.findUnique({
+    where: { id: sessionId },
+    select: { teacherId: true, status: true, roomName: true },
+  });
+
+  if (!session || session.teacherId !== user.id) {
+    return { error: "Bu oturumu silme yetkiniz yok." };
+  }
+
+  if (session.status === "LIVE") {
+    return { error: "Devam eden bir ders oturumu silinemez. Önce dersi sonlandırın." };
+  }
+
+  // Daily.co'dan odayı da sil
+  const DAILY_API_KEY = process.env.DAILY_API_KEY;
+  if (DAILY_API_KEY) {
+    try {
+      await fetch(`https://api.daily.co/v1/rooms/${session.roomName}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${DAILY_API_KEY}` },
+      });
+    } catch {
+      // Daily.co hatası olsa bile devam et, DB'den sil
+    }
+  }
+
+  await prisma.liveSession.delete({ where: { id: sessionId } });
+
+  revalidatePath("/teacher/live");
+  return { success: true };
+}
+

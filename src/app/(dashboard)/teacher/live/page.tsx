@@ -4,16 +4,10 @@ import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { CreateSessionForm } from "@/components/live/CreateSessionForm";
+import { SessionActions } from "@/components/live/SessionActions";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Radio,
-  Clock,
-  Users,
-  CalendarDays,
-  ChevronRight,
-  PlusCircle,
-} from "lucide-react";
+import { Radio, Users, CalendarDays, ChevronRight, PlusCircle } from "lucide-react";
 
 export const metadata: Metadata = { title: "Canlı Dersler | Fenz Akademi" };
 
@@ -25,24 +19,20 @@ const STATUS_MAP = {
 
 export default async function TeacherLivePage() {
   const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
   const dbUser = await prisma.user.findUnique({
     where: { id: user.id },
     select: { role: true },
   });
-  if (!dbUser || !["TEACHER", "ADMIN"].includes(dbUser.role)) {
-    redirect("/student");
-  }
+  if (!dbUser || !["TEACHER", "ADMIN"].includes(dbUser.role)) redirect("/student");
 
   const sessions = await prisma.liveSession.findMany({
     where: { teacherId: user.id },
     orderBy: { scheduledFor: "desc" },
     include: {
-      course: { select: { title: true } },
+      course: { select: { id: true, title: true } },
       _count: { select: { polls: true } },
     },
   });
@@ -60,9 +50,7 @@ export default async function TeacherLivePage() {
           <h1 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400 tracking-tight pb-1">
             Canlı Dersler
           </h1>
-          <p className="text-slate-400 text-sm mt-1">
-            WebRTC tabanlı gerçek zamanlı ders oturumları
-          </p>
+          <p className="text-slate-400 text-sm mt-1">WebRTC tabanlı gerçek zamanlı ders oturumları</p>
         </div>
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-500/10 border border-red-500/20">
           <span className="w-2 h-2 rounded-full bg-red-400 animate-pulse" />
@@ -72,7 +60,7 @@ export default async function TeacherLivePage() {
         </div>
       </div>
 
-      {/* Yeni Ders Oluşturma Formu */}
+      {/* Oluşturma Formu */}
       <Card className="bg-white/5 border border-white/10 rounded-3xl">
         <CardContent className="p-6">
           <div className="flex items-center gap-3 mb-5">
@@ -93,6 +81,7 @@ export default async function TeacherLivePage() {
         <h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider">
           Oturumlar ({sessions.length})
         </h2>
+
         {sessions.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-slate-500 rounded-3xl border border-dashed border-white/10">
             <Radio className="w-12 h-12 mb-3 opacity-20" />
@@ -103,56 +92,67 @@ export default async function TeacherLivePage() {
           sessions.map((session) => {
             const status = STATUS_MAP[session.status as keyof typeof STATUS_MAP];
             return (
-              <Link
+              <div
                 key={session.id}
-                href={`/teacher/live/${session.id}`}
-                className="group flex items-center justify-between p-5 rounded-2xl bg-white/5 border border-white/10 hover:border-cyan-500/30 hover:bg-white/8 transition-all duration-300 hover:-translate-y-0.5"
+                className="rounded-2xl bg-white/5 border border-white/10 hover:border-cyan-500/20 transition-all duration-300 p-5"
               >
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-2xl bg-slate-900 border border-white/5">
-                    <Radio
-                      className={`w-5 h-5 ${
-                        session.status === "LIVE" ? "text-red-400 animate-pulse" : "text-slate-400"
-                      }`}
-                    />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <p className="font-bold text-white text-sm">{session.title}</p>
-                      <Badge
-                        variant="outline"
-                        className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${status.color}`}
-                      >
-                        {status.label}
-                      </Badge>
+                {/* Oda linki */}
+                <Link
+                  href={`/teacher/live/${session.id}`}
+                  className="group flex items-center justify-between"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 rounded-2xl bg-slate-900 border border-white/5">
+                      <Radio
+                        className={`w-5 h-5 ${
+                          session.status === "LIVE" ? "text-red-400 animate-pulse" : "text-slate-400"
+                        }`}
+                      />
                     </div>
-                    <div className="flex items-center gap-3 text-xs text-slate-400">
-                      <span className="flex items-center gap-1">
-                        <CalendarDays className="w-3 h-3" />
-                        {new Date(session.scheduledFor).toLocaleString("tr-TR", {
-                          timeZone: "Europe/Istanbul",
-                          day: "numeric",
-                          month: "short",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </span>
-                      {session.course && (
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="font-bold text-white text-sm">{session.title}</p>
+                        <Badge
+                          variant="outline"
+                          className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${status.color}`}
+                        >
+                          {status.label}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-3 text-xs text-slate-400">
+                        <span className="flex items-center gap-1">
+                          <CalendarDays className="w-3 h-3" />
+                          {new Date(session.scheduledFor).toLocaleString("tr-TR", {
+                            timeZone: "Europe/Istanbul",
+                            day: "numeric",
+                            month: "short",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </span>
+                        {session.course && <span className="text-slate-500">•</span>}
+                        {session.course && <span>{session.course.title}</span>}
                         <span className="text-slate-500">•</span>
-                      )}
-                      {session.course && (
-                        <span>{session.course.title}</span>
-                      )}
-                      <span className="text-slate-500">•</span>
-                      <span className="flex items-center gap-1">
-                        <Users className="w-3 h-3" />
-                        {session._count.polls} anket
-                      </span>
+                        <span className="flex items-center gap-1">
+                          <Users className="w-3 h-3" />
+                          {session._count.polls} anket
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <ChevronRight className="w-5 h-5 text-slate-500 group-hover:text-cyan-400 group-hover:translate-x-1 transition-all" />
-              </Link>
+                  <ChevronRight className="w-5 h-5 text-slate-500 group-hover:text-cyan-400 group-hover:translate-x-1 transition-all" />
+                </Link>
+
+                {/* Düzenle / Sil */}
+                <SessionActions
+                  sessionId={session.id}
+                  currentTitle={session.title}
+                  currentScheduledFor={session.scheduledFor.toISOString()}
+                  currentCourseId={session.course?.id ?? null}
+                  status={session.status}
+                  courses={courses}
+                />
+              </div>
             );
           })
         )}
