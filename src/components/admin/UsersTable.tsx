@@ -36,6 +36,19 @@ export function UsersTable({ initialUsers }: { initialUsers: UserData[] }) {
     setHasChanges(false);
   }, [initialUsers]);
 
+  // Yeni eklendi: users veya initialUsers değiştiğinde hasChanges'ı hesapla
+  useEffect(() => {
+    let changed = false;
+    for (const u of users) {
+      const orig = initialUsers.find(x => x.id === u.id);
+      if (orig && (orig.role !== u.role || orig.parentId !== u.parentId)) {
+        changed = true;
+        break;
+      }
+    }
+    setHasChanges(changed);
+  }, [users, initialUsers]);
+
   const filteredUsers = users.filter(u => 
     u.name.toLowerCase().includes(search.toLowerCase()) || 
     u.email.toLowerCase().includes(search.toLowerCase())
@@ -50,12 +63,10 @@ export function UsersTable({ initialUsers }: { initialUsers: UserData[] }) {
 
   const handleRoleChangeLocal = (userId: string, newRole: Role) => {
     setUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
-    setHasChanges(true);
   };
 
   const handleParentChangeLocal = (userId: string, newParentId: string) => {
     setUsers(prev => prev.map(u => u.id === userId ? { ...u, parentId: newParentId } : u));
-    setHasChanges(true);
   };
 
   const handleSaveChanges = () => {
