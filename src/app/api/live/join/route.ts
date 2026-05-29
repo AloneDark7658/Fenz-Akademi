@@ -105,7 +105,7 @@ export async function POST(req: NextRequest) {
       success: true,
       token: tokenData.token,
       roomName: session.roomName,
-      roomUrl: `https://fenzakademi.daily.co/${session.roomName}`,
+      roomUrl: `https://fenz-akademi.daily.co/${session.roomName}`,
       isOwner: isTeacher,
       userName: dbUser?.name || user.email,
     });
