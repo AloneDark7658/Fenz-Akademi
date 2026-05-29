@@ -31,11 +31,17 @@ export function StudentSidebar() {
 
   return (
     <aside className="hidden md:flex flex-col h-full w-[88px] hover:w-64 transition-all duration-300 ease-in-out bg-slate-950/40 border-r border-white/10 z-50 overflow-hidden group">
-      <div className="flex items-center gap-4 p-6 border-b border-white/5 whitespace-nowrap overflow-hidden">
-        <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-2.5 shadow-[0_0_15px_rgba(34,211,238,0.15)] shrink-0">
-          <Rocket className="w-5 h-5 text-cyan-400" />
+      <div className="flex items-center p-6 border-b border-white/5 whitespace-nowrap overflow-hidden relative min-h-[88px]">
+        {/* Icon & Collapsed Text */}
+        <div className="flex flex-col items-center justify-center shrink-0 w-10 group-hover:mr-4 transition-all duration-300">
+          <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-2.5 shadow-[0_0_15px_rgba(34,211,238,0.15)] w-10 h-10 flex items-center justify-center">
+            <Rocket className="w-5 h-5 text-cyan-400 shrink-0" />
+          </div>
+          <span className="text-[10px] font-bold text-white mt-1.5 tracking-widest group-hover:opacity-0 transition-opacity duration-200 absolute bottom-2">FenZ</span>
         </div>
-        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-75">
+        
+        {/* Expanded Text */}
+        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-75 flex flex-col justify-center">
           <p className="font-black text-white text-base leading-tight tracking-wide">Fenz Akademi</p>
           <p className="text-cyan-400 text-xs font-semibold">Öğrenci Paneli</p>
         </div>
