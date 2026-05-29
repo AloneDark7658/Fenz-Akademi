@@ -218,6 +218,34 @@ export function useDailyCall({
     [participants]
   );
 
+  // Cihazları listele
+  const getAvailableDevices = useCallback(async () => {
+    if (!callRef.current) return { camera: [], mic: [], speaker: [] };
+    const { devices } = await callRef.current.enumerateDevices();
+    return {
+      camera: devices.filter((d: MediaDeviceInfo) => d.kind === 'videoinput'),
+      mic: devices.filter((d: MediaDeviceInfo) => d.kind === 'audioinput'),
+      speaker: devices.filter((d: MediaDeviceInfo) => d.kind === 'audiooutput'),
+    };
+  }, []);
+
+  // Cihaz seç
+  const setDevice = useCallback(async (kind: 'camera' | 'mic' | 'speaker', deviceId: string) => {
+    if (!callRef.current) return;
+    try {
+      if (kind === 'camera') {
+        await callRef.current.setInputDevicesAsync({ videoDeviceId: deviceId });
+      } else if (kind === 'mic') {
+        await callRef.current.setInputDevicesAsync({ audioDeviceId: deviceId });
+      } else if (kind === 'speaker') {
+        // @ts-ignore - Daily.co types might miss setOutputDeviceAsync but it exists
+        await callRef.current.setOutputDeviceAsync({ outputDeviceId: deviceId });
+      }
+    } catch (err) {
+      console.error("Cihaz ayarlanamadı:", err);
+    }
+  }, []);
+
   // Component unmount'unda temizle
   useEffect(() => {
     return () => {
@@ -244,5 +272,7 @@ export function useDailyCall({
     muteAllParticipants,
     getVideoTrack,
     getAudioTrack,
+    getAvailableDevices,
+    setDevice,
   };
 }

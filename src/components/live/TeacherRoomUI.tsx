@@ -4,12 +4,13 @@ import { useState, useTransition } from "react";
 import { motion } from "framer-motion";
 import {
   Mic, MicOff, Video, VideoOff, Monitor, MonitorOff,
-  Users, PhoneOff, Loader2, AlertCircle
+  Users, PhoneOff, Loader2, AlertCircle, Settings
 } from "lucide-react";
 import { useDailyCall } from "@/hooks/useDailyCall";
 import { VideoTile, ParticipantGrid } from "./DailyRoom";
 import { TeacherPollPanel } from "./PollPanel";
 import { endSessionAction } from "@/app/actions/live";
+import { DeviceSettingsModal } from "./DeviceSettingsModal";
 
 interface TeacherRoomUIProps {
   roomUrl: string;
@@ -28,6 +29,7 @@ export function TeacherRoomUI({
 }: TeacherRoomUIProps) {
   const [isPollPanelOpen, setIsPollPanelOpen] = useState(true);
   const [isEndingSession, startEndTransition] = useTransition();
+  const [isDeviceModalOpen, setIsDeviceModalOpen] = useState(false);
 
   const {
     callState,
@@ -45,6 +47,8 @@ export function TeacherRoomUI({
     muteAllParticipants,
     getVideoTrack,
     getAudioTrack,
+    getAvailableDevices,
+    setDevice,
   } = useDailyCall({
     roomUrl,
     token,
@@ -52,7 +56,6 @@ export function TeacherRoomUI({
     onError: (msg) => console.error("[TeacherRoom]", msg),
   });
 
-  // Yerel katılımcıyı bul
   const localParticipant = Object.values(participants).find((p) => p.local);
   const remoteParticipants = Object.fromEntries(
     Object.entries(participants).filter(([, p]) => !p.local)
@@ -66,7 +69,6 @@ export function TeacherRoomUI({
     });
   };
 
-  // Henüz katılmadıysa — Başlatma ekranı
   if (callState === "idle" || callState === "loading" || callState === "joining") {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-6">
@@ -129,8 +131,23 @@ export function TeacherRoomUI({
             </div>
           )}
 
+          {/* PiP (Picture-in-Picture) Kamera (Eğer ekran paylaşılıyorsa sağ üstte göster) */}
+          {isScreenSharing && localParticipant && (
+            <div className="absolute top-4 right-4 w-48 h-32 rounded-2xl overflow-hidden shadow-2xl border-2 border-slate-700/50 bg-black z-10 transition-all hover:scale-105">
+              <VideoTile
+                track={localParticipant.tracks.video?.persistentTrack}
+                audioTrack={undefined}
+                isLocal={true}
+                userName={userName}
+                hasVideo={localVideo}
+                hasAudio={localAudio}
+                size="large" // it fills the w-48 h-32 parent
+              />
+            </div>
+          )}
+
           {/* Katılımcı sayacı */}
-          <div className="absolute top-4 right-4 flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/40 backdrop-blur-sm border border-white/10">
+          <div className={`absolute ${isScreenSharing ? 'top-40 right-4' : 'top-4 right-4'} flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/40 backdrop-blur-sm border border-white/10 transition-all`}>
             <span className="w-2 h-2 rounded-full bg-red-400 animate-pulse" />
             <Users className="w-3.5 h-3.5 text-slate-300" />
             <span className="text-xs font-bold text-white">
@@ -190,11 +207,20 @@ export function TeacherRoomUI({
             {isScreenSharing ? <MonitorOff className="w-5 h-5" /> : <Monitor className="w-5 h-5" />}
           </button>
 
+          {/* Ayarlar Modalı Butonu */}
+          <button
+            onClick={() => setIsDeviceModalOpen(true)}
+            title="Cihaz Ayarları"
+            className="p-3 rounded-2xl border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white transition-all duration-200 hover:scale-105 ml-2"
+          >
+            <Settings className="w-5 h-5" />
+          </button>
+
           {/* Herkesi Sessize Al */}
           <button
             onClick={muteAllParticipants}
             title="Tüm öğrencileri sessize al"
-            className="p-3 rounded-2xl border border-orange-500/20 bg-orange-500/10 text-orange-400 hover:bg-orange-500/20 transition-all duration-200 hover:scale-105"
+            className="p-3 rounded-2xl border border-orange-500/20 bg-orange-500/10 text-orange-400 hover:bg-orange-500/20 transition-all duration-200 hover:scale-105 ml-2"
           >
             <Users className="w-5 h-5" />
           </button>
@@ -225,6 +251,14 @@ export function TeacherRoomUI({
           <TeacherPollPanel sessionId={sessionId} />
         </div>
       </motion.div>
+
+      {/* Cihaz Seçimi Modalı */}
+      <DeviceSettingsModal
+        isOpen={isDeviceModalOpen}
+        onClose={() => setIsDeviceModalOpen(false)}
+        getAvailableDevices={getAvailableDevices}
+        setDevice={setDevice}
+      />
     </div>
   );
 }

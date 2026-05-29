@@ -1,9 +1,11 @@
 "use client";
 
-import { Mic, MicOff, Video, VideoOff, PhoneOff, Loader2, AlertCircle } from "lucide-react";
+import { useState } from "react";
+import { Mic, MicOff, Video, VideoOff, PhoneOff, Loader2, AlertCircle, Settings } from "lucide-react";
 import { useDailyCall } from "@/hooks/useDailyCall";
 import { VideoTile } from "./DailyRoom";
 import { StudentPollPanel } from "./PollPanel";
+import { DeviceSettingsModal } from "./DeviceSettingsModal";
 
 interface StudentRoomUIProps {
   roomUrl: string;
@@ -22,6 +24,8 @@ export function StudentRoomUI({
   userName,
   onLeft,
 }: StudentRoomUIProps) {
+  const [isDeviceModalOpen, setIsDeviceModalOpen] = useState(false);
+
   const {
     callState,
     participants,
@@ -34,6 +38,8 @@ export function StudentRoomUI({
     toggleVideo,
     getVideoTrack,
     getAudioTrack,
+    getAvailableDevices,
+    setDevice,
   } = useDailyCall({
     roomUrl,
     token,
@@ -124,16 +130,17 @@ export function StudentRoomUI({
             </div>
           )}
 
-          {/* Yerel Kamera — Sağ Alt Köşe (Picture-in-Picture) */}
+          {/* Yerel Kamera — Sağ Üst Köşe (Picture-in-Picture) */}
           {localParticipant && (
-            <div className="absolute bottom-4 right-4">
+            <div className="absolute top-4 right-4 w-40 h-28 md:w-48 md:h-32 rounded-2xl overflow-hidden shadow-2xl border-2 border-slate-700/50 bg-black z-10 transition-all hover:scale-105">
               <VideoTile
                 track={localParticipant.tracks.video?.persistentTrack}
+                audioTrack={undefined}
                 isLocal={true}
                 userName={userName}
                 hasVideo={localVideo}
                 hasAudio={localAudio}
-                size="small"
+                size="large"
               />
             </div>
           )}
@@ -145,7 +152,7 @@ export function StudentRoomUI({
           </div>
         </div>
 
-        {/* Öğrenci Kontrol Çubuğu (mikrofon kısıtlı) */}
+        {/* Öğrenci Kontrol Çubuğu */}
         <div className="flex items-center justify-center gap-3 py-3 px-4 rounded-2xl bg-slate-900/80 border border-white/5 backdrop-blur-sm">
           {/* Mikrofon */}
           <button
@@ -173,6 +180,15 @@ export function StudentRoomUI({
             {localVideo ? <Video className="w-5 h-5" /> : <VideoOff className="w-5 h-5" />}
           </button>
 
+          {/* Ayarlar Modalı Butonu */}
+          <button
+            onClick={() => setIsDeviceModalOpen(true)}
+            title="Cihaz Ayarları"
+            className="p-3 rounded-2xl border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white transition-all duration-200 hover:scale-105 ml-2"
+          >
+            <Settings className="w-5 h-5" />
+          </button>
+
           {/* Ayrıl */}
           <button
             onClick={leaveCall}
@@ -188,6 +204,14 @@ export function StudentRoomUI({
       <div className="w-72 flex-shrink-0 overflow-y-auto space-y-3">
         <StudentPollPanel sessionId={sessionId} studentId={studentId} />
       </div>
+
+      {/* Cihaz Seçimi Modalı */}
+      <DeviceSettingsModal
+        isOpen={isDeviceModalOpen}
+        onClose={() => setIsDeviceModalOpen(false)}
+        getAvailableDevices={getAvailableDevices}
+        setDevice={setDevice}
+      />
     </div>
   );
 }
