@@ -130,6 +130,7 @@ export default async function TeacherLivePage() {
                       <span className="flex items-center gap-1">
                         <CalendarDays className="w-3 h-3" />
                         {new Date(session.scheduledFor).toLocaleString("tr-TR", {
+                          timeZone: "Europe/Istanbul",
                           day: "numeric",
                           month: "short",
                           hour: "2-digit",

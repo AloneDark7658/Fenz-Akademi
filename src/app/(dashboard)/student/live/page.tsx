@@ -133,11 +133,11 @@ export default async function StudentLivePage() {
                   <div className="space-y-3 mb-6">
                     <div className="flex items-center gap-3 text-slate-300 text-sm">
                       <Calendar className="w-4 h-4 text-cyan-400" />
-                      {date.toLocaleDateString("tr-TR", { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                      {date.toLocaleDateString("tr-TR", { timeZone: "Europe/Istanbul", weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                     </div>
                     <div className="flex items-center gap-3 text-slate-300 text-sm">
                       <Clock className="w-4 h-4 text-orange-400" />
-                      {date.toLocaleTimeString("tr-TR", { hour: '2-digit', minute:'2-digit' })}
+                      {date.toLocaleTimeString("tr-TR", { timeZone: "Europe/Istanbul", hour: '2-digit', minute:'2-digit' })}
                     </div>
                   </div>
 

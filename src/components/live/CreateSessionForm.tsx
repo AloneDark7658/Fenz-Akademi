@@ -24,7 +24,8 @@ export function CreateSessionForm({ courses }: CreateSessionFormProps) {
     setError(null);
     const form = e.currentTarget;
     const title = (form.elements.namedItem("title") as HTMLInputElement).value;
-    const scheduledFor = (form.elements.namedItem("scheduledFor") as HTMLInputElement).value;
+    const scheduledForValue = (form.elements.namedItem("scheduledFor") as HTMLInputElement).value;
+    const scheduledFor = new Date(scheduledForValue).toISOString(); // Yerel saati UTC ISO formatına çevir
     const courseId = (form.elements.namedItem("courseId") as HTMLSelectElement).value;
 
     startTransition(async () => {
@@ -47,10 +48,10 @@ export function CreateSessionForm({ courses }: CreateSessionFormProps) {
     });
   };
 
-  // Varsayılan tarih: 1 saat sonra
-  const defaultDate = new Date(Date.now() + 60 * 60 * 1000)
-    .toISOString()
-    .slice(0, 16);
+  // Varsayılan tarih: 1 saat sonra (Yerel saate göre)
+  const now = new Date(Date.now() + 60 * 60 * 1000);
+  const offset = now.getTimezoneOffset() * 60000;
+  const defaultDate = new Date(now.getTime() - offset).toISOString().slice(0, 16);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
