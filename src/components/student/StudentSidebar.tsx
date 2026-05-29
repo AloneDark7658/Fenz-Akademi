@@ -30,24 +30,24 @@ export function StudentSidebar() {
   }
 
   return (
-    <aside className="hidden md:flex flex-col h-full w-64 bg-slate-950/40 border-r border-white/10 z-50">
-      <div className="flex items-center gap-3 px-6 py-6 border-b border-white/5">
-        <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-2 shadow-[0_0_15px_rgba(34,211,238,0.15)]">
+    <aside className="hidden md:flex flex-col h-full w-[88px] hover:w-64 transition-all duration-300 ease-in-out bg-slate-950/40 border-r border-white/10 z-50 overflow-hidden group">
+      <div className="flex items-center gap-4 p-6 border-b border-white/5 whitespace-nowrap overflow-hidden">
+        <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-2.5 shadow-[0_0_15px_rgba(34,211,238,0.15)] shrink-0">
           <Rocket className="w-5 h-5 text-cyan-400" />
         </div>
-        <div>
+        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-75">
           <p className="font-black text-white text-base leading-tight tracking-wide">Fenz Akademi</p>
           <p className="text-cyan-400 text-xs font-semibold">Öğrenci Paneli</p>
         </div>
       </div>
 
-      <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+      <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto overflow-x-hidden">
         {STUDENT_NAV_ITEMS.map((item) => {
           const active = isActive(item);
           return (
             <Link key={item.href} href={item.href}>
               <span className={cn(
-                "relative flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold transition-all duration-300",
+                "relative flex items-center gap-4 px-4 py-3 rounded-2xl text-sm font-semibold transition-all duration-300 whitespace-nowrap overflow-hidden",
                 active ? "text-white shadow-lg" : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
               )}>
                 {active && (
@@ -57,8 +57,8 @@ export function StudentSidebar() {
                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
                   />
                 )}
-                <item.icon className={cn("relative w-5 h-5", active ? "text-cyan-400 " : "")} />
-                <span className="relative">{item.label}</span>
+                <item.icon className={cn("relative w-6 h-6 shrink-0", active ? "text-cyan-400 " : "")} />
+                <span className="relative opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-75">{item.label}</span>
               </span>
             </Link>
           );
@@ -67,9 +67,9 @@ export function StudentSidebar() {
 
       <div className="px-4 py-4 border-t border-white/5">
         <form action={signOutAction}>
-          <button type="submit" className="flex w-full items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-colors">
-            <LogOut className="w-5 h-5" />
-            Çıkış Yap
+          <button type="submit" className="flex w-full items-center gap-4 px-4 py-3 rounded-2xl text-sm font-semibold text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-colors whitespace-nowrap overflow-hidden">
+            <LogOut className="w-6 h-6 shrink-0" />
+            <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-75">Çıkış Yap</span>
           </button>
         </form>
       </div>

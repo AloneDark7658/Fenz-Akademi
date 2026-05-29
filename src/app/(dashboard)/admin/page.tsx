@@ -29,6 +29,10 @@ export default async function AdminDashboardPage() {
         role: true,
         points: true,
         createdAt: true,
+        parentId: true,
+        parent: {
+          select: { name: true }
+        }
       },
       orderBy: { createdAt: "desc" }
     })
