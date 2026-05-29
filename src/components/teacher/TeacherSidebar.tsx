@@ -16,7 +16,7 @@ import {
 import { signOutAction } from "@/app/actions/auth";
 import { cn } from "@/lib/utils";
 
-const NAV_ITEMS = [
+export const TEACHER_NAV_ITEMS = [
   { href: "/teacher", label: "Panel", icon: LayoutDashboard, exact: true },
   { href: "/teacher/lessons", label: "Dersler", icon: Video },
   { href: "/teacher/questions", label: "Sorular", icon: BookOpen },
@@ -28,7 +28,7 @@ const NAV_ITEMS = [
 export function TeacherSidebar() {
   const pathname = usePathname();
 
-  function isActive(item: (typeof NAV_ITEMS)[number]) {
+  function isActive(item: (typeof TEACHER_NAV_ITEMS)[number]) {
     if (item.exact) return pathname === item.href;
     return pathname.startsWith(item.href);
   }
@@ -48,7 +48,7 @@ export function TeacherSidebar() {
         </div>
 
         <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
-          {NAV_ITEMS.map((item) => {
+          {TEACHER_NAV_ITEMS.map((item) => {
             const active = isActive(item);
             return (
               <Link key={item.href} href={item.href}>
@@ -80,38 +80,6 @@ export function TeacherSidebar() {
           </form>
         </div>
       </aside>
-
-      {/* ─── MOBILE BOTTOM NAV ─── */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-slate-950/80 border-t border-white/10 pb-safe">
-        <div className="flex items-center justify-around px-1 py-2">
-          {NAV_ITEMS.map((item) => {
-            const active = isActive(item);
-            return (
-              <Link key={item.href} href={item.href} className="relative flex-1 flex flex-col items-center justify-center py-2 px-1">
-                {active && (
-                  <motion.span
-                    layoutId="teacher-mobile-nav"
-                    className="absolute inset-0 bg-cyan-500/10 rounded-xl"
-                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                  />
-                )}
-                <item.icon className={cn("relative w-5 h-5 mb-1", active ? "text-cyan-400 " : "text-slate-400")} />
-                <span className={cn("relative text-[10px] font-semibold truncate w-full text-center", active ? "text-cyan-400" : "text-slate-400")}>
-                  {item.label}
-                </span>
-              </Link>
-            );
-          })}
-          
-          {/* Mobil Çıkış Butonu */}
-          <form action={signOutAction} className="flex-1 flex">
-            <button type="submit" className="relative flex-1 flex flex-col items-center justify-center py-2 px-1 text-slate-400 hover:text-red-400 transition-colors">
-              <LogOut className="relative w-5 h-5 mb-1" />
-              <span className="relative text-[10px] font-semibold truncate w-full text-center">Çıkış</span>
-            </button>
-          </form>
-        </div>
-      </nav>
     </>
   );
 }

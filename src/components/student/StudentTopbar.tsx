@@ -2,21 +2,23 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, Search, Menu, Rocket, LogOut } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { motion } from "framer-motion";
+import { Menu, LogOut, Rocket } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { TEACHER_NAV_ITEMS } from "./TeacherSidebar";
+import { STUDENT_NAV_ITEMS } from "./StudentSidebar";
 import { cn } from "@/lib/utils";
 import { signOutAction } from "@/app/actions/auth";
 
-interface TeacherTopbarProps {
+interface StudentTopbarProps {
+  streak: number;
+  points: number;
   displayName: string;
 }
 
-export function TeacherTopbar({ displayName }: TeacherTopbarProps) {
+export function StudentTopbar({ streak, points, displayName }: StudentTopbarProps) {
   const pathname = usePathname();
 
-  function isActive(item: (typeof TEACHER_NAV_ITEMS)[number]) {
+  function isActive(item: (typeof STUDENT_NAV_ITEMS)[number]) {
     if (item.exact) return pathname === item.href;
     return pathname.startsWith(item.href);
   }
@@ -29,8 +31,7 @@ export function TeacherTopbar({ displayName }: TeacherTopbarProps) {
     .toUpperCase();
 
   return (
-    <header className="h-16 flex items-center justify-between px-4 md:px-6 border-b border-white/10 bg-edu-navy/80 flex-shrink-0 sticky top-0 z-40 backdrop-blur-md">
-      
+    <header className="h-16 flex items-center justify-between px-4 md:px-6 border-b border-white/10 bg-slate-950/80 flex-shrink-0 sticky top-0 z-40 backdrop-blur-md">
       {/* Mobil Hamburger Menü */}
       <div className="flex items-center gap-3 md:hidden">
         <Sheet>
@@ -47,12 +48,12 @@ export function TeacherTopbar({ displayName }: TeacherTopbarProps) {
                 </div>
                 <div>
                   <p className="font-black text-white text-base leading-tight tracking-wide">Fenz Akademi</p>
-                  <p className="text-cyan-400 text-xs font-semibold">Öğretmen Paneli</p>
+                  <p className="text-cyan-400 text-xs font-semibold">Öğrenci Paneli</p>
                 </div>
               </div>
 
               <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
-                {TEACHER_NAV_ITEMS.map((item) => {
+                {STUDENT_NAV_ITEMS.map((item) => {
                   const active = isActive(item);
                   return (
                     <Link key={item.href} href={item.href}>
@@ -84,28 +85,25 @@ export function TeacherTopbar({ displayName }: TeacherTopbarProps) {
         </span>
       </div>
 
-      {/* Arama (Sadece Masaüstü) */}
-      <div className="relative max-w-xs w-full hidden md:block">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-        <Input
-          placeholder="Soru veya konu ara..."
-          className="pl-9 h-9 bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:border-edu-cyan rounded-xl text-sm"
-        />
-      </div>
+      <div className="hidden md:block" /> {/* Spacer for desktop */}
 
-      {/* Sağ: Bildirim + Avatar */}
-      <div className="flex items-center gap-3 ml-auto">
-        <button className="relative p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-colors">
-          <Bell className="w-5 h-5" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-edu-orange rounded-full ring-2 ring-edu-navy" />
-        </button>
+      {/* Sağ: İstatistikler + Avatar */}
+      <div className="flex items-center gap-4 ml-auto">
+        <div className="flex items-center gap-2 text-xs md:text-sm">
+          <span className="text-orange-400 font-bold bg-orange-500/10 px-2 md:px-3 py-1 rounded-full border border-orange-500/20 shadow-[0_0_10px_rgba(249,115,22,0.1)]">
+            🔥 {streak} Seri
+          </span>
+          <span className="text-cyan-400 font-bold bg-cyan-500/10 px-2 md:px-3 py-1 rounded-full border border-cyan-500/20 shadow-[0_0_10px_rgba(34,211,238,0.1)]">
+            ⭐ {points} XP
+          </span>
+        </div>
 
         <div className="flex items-center gap-2.5">
           <div className="hidden md:block text-right">
             <p className="text-sm font-semibold text-white leading-tight">{displayName}</p>
-            <p className="text-xs text-slate-400">Öğretmen</p>
+            <p className="text-xs text-slate-400">Öğrenci</p>
           </div>
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-edu-cyan to-edu-navy border border-edu-cyan/30 flex items-center justify-center text-white text-xs font-bold shrink-0">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 border border-cyan-500/30 flex items-center justify-center text-white text-xs font-bold shrink-0">
             {initials}
           </div>
         </div>
