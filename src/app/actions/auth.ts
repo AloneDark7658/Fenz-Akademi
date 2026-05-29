@@ -268,3 +268,31 @@ export async function signOutAction(): Promise<never> {
   revalidatePath("/", "layout");
   redirect("/login");
 }
+
+// ─── ŞİFRE SIFIRLAMA (forgotPassword) ────────────────────────────────────────
+
+/**
+ * Kullanıcının e-posta adresine şifre sıfırlama bağlantısı gönderir.
+ */
+export async function forgotPasswordAction(email: string): Promise<AuthResult> {
+  if (!email || !email.includes("@")) {
+    return { success: false, error: "Lütfen geçerli bir e-posta adresi girin." };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  
+  // Şifre sıfırlama e-postası gönder
+  // redirectTo URL'si Vercel deploylarında veya localhost'ta doğru çalışması için NEXT_PUBLIC_APP_URL kullanılabilir
+  // Biz şimdilik varsayılan redirect yapısını kullanacağız veya "/update-password" sayfasına yönlendireceğiz
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${appUrl}/api/auth/callback?next=/update-password`,
+  });
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+
+  return { success: true };
+}

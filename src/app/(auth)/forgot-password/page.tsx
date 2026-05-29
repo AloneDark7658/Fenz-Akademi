@@ -5,17 +5,29 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Rocket, Mail, ArrowLeft, Send } from "lucide-react";
-import { useState } from "react";
+import { Rocket, Mail, ArrowLeft, Send, Loader2, AlertCircle } from "lucide-react";
+import { useState, useTransition } from "react";
+import { forgotPasswordAction } from "@/app/actions/auth";
 
 export default function ForgotPasswordPage() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [email, setEmail] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
+  const [isPending, startTransition] = useTransition();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMsg("");
+    
     if (email) {
-      setIsSubmitted(true);
+      startTransition(async () => {
+        const result = await forgotPasswordAction(email);
+        if (result.success) {
+          setIsSubmitted(true);
+        } else {
+          setErrorMsg(result.error || "Şifre sıfırlama bağlantısı gönderilirken bir hata oluştu.");
+        }
+      });
     }
   };
 
@@ -77,6 +89,17 @@ export default function ForgotPasswordPage() {
                   <p className="text-slate-400 text-sm">Hesabınıza kayıtlı e-posta adresini girin, size şifre sıfırlama bağlantısı gönderelim.</p>
                 </div>
 
+                {errorMsg && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    className="flex items-center gap-3 bg-red-500/10 border border-red-500/20 rounded-2xl px-4 py-3 mb-6"
+                  >
+                    <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
+                    <p className="text-red-400 text-sm font-medium">{errorMsg}</p>
+                  </motion.div>
+                )}
+
                 <form onSubmit={handleSubmit} className="space-y-6">
                   {/* E-posta */}
                   <div className="space-y-2">
@@ -91,6 +114,7 @@ export default function ForgotPasswordPage() {
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="ornek@mail.com"
                         required
+                        disabled={isPending}
                         className="pl-12 bg-black/20 border-white/10 text-white placeholder:text-slate-600 focus:border-cyan-500/50 focus:ring-cyan-500/20 rounded-2xl h-14 transition-all"
                       />
                     </div>
@@ -99,10 +123,20 @@ export default function ForgotPasswordPage() {
                   {/* Gönder butonu */}
                   <Button
                     type="submit"
-                    className="w-full h-14 rounded-2xl font-bold text-base bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white shadow-[0_0_20px_rgba(249,115,22,0.2)] hover:shadow-[0_0_25px_rgba(249,115,22,0.4)] transition-all duration-300 hover:-translate-y-1 group"
+                    disabled={isPending}
+                    className="w-full h-14 rounded-2xl font-bold text-base bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white shadow-[0_0_20px_rgba(249,115,22,0.2)] hover:shadow-[0_0_25px_rgba(249,115,22,0.4)] transition-all duration-300 hover:-translate-y-1 disabled:opacity-70 disabled:translate-y-0 group"
                   >
-                    Bağlantı Gönder
-                    <Send className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                    {isPending ? (
+                      <>
+                        <Loader2 className="w-5 h-5 mr-3 animate-spin" />
+                        Gönderiliyor...
+                      </>
+                    ) : (
+                      <>
+                        Bağlantı Gönder
+                        <Send className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                      </>
+                    )}
                   </Button>
                 </form>
               </>
