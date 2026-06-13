@@ -227,7 +227,7 @@ export default async function StudentDashboardPage() {
               sub: "Video ders",
             },
           ].map(({ label, value, icon: Icon, color, bg, sub }) => (
-            <Card key={label} className={`bg-white/5 border border-white/10 rounded-2xl hover:shadow-[0_0_20px_rgba(56,189,248,0.15)] hover:border-white/20 hover:scale-[1.02] transition-all duration-300`}>
+            <Card key={label} className={`bg-white/5 border border-white/10 rounded-2xl hover:shadow-[0_0_20px_rgba(56,189,248,0.15)] hover:border-white/20 hover:-translate-y-1 transition-[transform,border-color,box-shadow] duration-200`}>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
                   <p className="text-slate-400 text-sm font-semibold tracking-wide uppercase">{label}</p>

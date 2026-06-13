@@ -1,13 +1,13 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { signInAction, type AuthResult } from "@/app/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Rocket, Mail, Lock, AlertCircle, Loader2, Sparkles, ArrowRight } from "lucide-react";
+import { Rocket, Mail, Lock, AlertCircle, Loader2, Sparkles, ArrowRight, Eye, EyeOff } from "lucide-react";
 
 // ─── Form field helper ───────────────────────────────────────────────────────
 function FieldError({ errors }: { errors?: string[] }) {
@@ -30,6 +30,7 @@ export default function LoginPage() {
     signInAction,
     null
   );
+  const [showPassword, setShowPassword] = useState(false);
 
   return (
     <div className="relative min-h-screen bg-slate-950 flex flex-col md:flex-row overflow-hidden selection:bg-cyan-500/30">
@@ -130,11 +131,22 @@ export default function LoginPage() {
                   <Input
                     id="password"
                     name="password"
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
                     autoComplete="current-password"
-                    className="pl-12 bg-black/20 border-white/10 text-white placeholder:text-slate-600 focus:border-cyan-500/50 focus:ring-cyan-500/20 rounded-2xl h-14 transition-all"
+                    className="pl-12 pr-12 bg-black/20 border-white/10 text-white placeholder:text-slate-600 focus:border-cyan-500/50 focus:ring-cyan-500/20 rounded-2xl h-14 transition-all"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-cyan-400 transition-colors focus:outline-none"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
+                  </button>
                 </div>
                 <div className="flex justify-end">
                   <Link href="/forgot-password" className="text-xs text-cyan-400 hover:text-cyan-300 transition-colors font-medium mt-1">

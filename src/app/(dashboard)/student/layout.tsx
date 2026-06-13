@@ -31,15 +31,15 @@ export default async function StudentLayout({
   const displayName = dbUser?.name ?? user.email ?? "Öğrenci";
 
   return (
-    <div className="flex h-[100dvh] bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 overflow-hidden selection:bg-cyan-500/30">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 selection:bg-cyan-500/30">
       <StudentSidebar />
-      <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
+      <div className="md:pl-[88px] flex flex-col min-h-screen">
         <StudentTopbar 
           streak={dbUser?.streak || 0} 
           points={dbUser?.points || 0}
           displayName={displayName}
         />
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
+        <main className="flex-1 p-4 md:p-6 lg:p-8">
           <div className="max-w-[1600px] w-full mx-auto">{children}</div>
         </main>
       </div>

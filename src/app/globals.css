@@ -154,11 +154,33 @@ body {
   /* Scroll kasmasini önle */
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: none;
+  /* 300ms tap delay'i kaldır */
+  touch-action: manipulation;
+  /* Yazı boyutu otomatik ayarını kapat */
+  text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* HTML scroll — tarayıcının compositor thread'inde çalışsın */
+html {
+  scroll-behavior: auto;
+  /* iOS momentum scroll */
+  -webkit-overflow-scrolling: touch;
 }
 
 /* GPU compositing layer — scroll esnasında repaint olmasın */
 .bg-deco-layer {
   will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  /* İçindeki elementleri etkile */
+  contain: layout paint;
+}
+
+/* Animasyon yapan elementler için GPU katmanı */
+[data-slot="sheet-content"],
+[data-animating] {
+  will-change: transform, opacity;
   transform: translateZ(0);
   backface-visibility: hidden;
 }
@@ -249,6 +271,15 @@ body {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* Mobilde backdrop-filter performans kaybı çok yüksek — kaldır */
+@media (max-width: 768px) {
+  .glass {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: rgba(11, 17, 32, 0.97);
+  }
 }
 
 /* ─── Scrollbar Stili ────────────────────────────────────────────────────── */

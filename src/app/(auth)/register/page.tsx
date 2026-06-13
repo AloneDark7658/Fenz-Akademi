@@ -18,7 +18,9 @@ import {
   Loader2,
   ChevronDown,
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  Eye,
+  EyeOff
 } from "lucide-react";
 
 // ─── Yardımcı ────────────────────────────────────────────────────────────────
@@ -84,6 +86,8 @@ export default function RegisterPage() {
     null
   );
   const [role, setRole] = useState("STUDENT");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   return (
     <div className="relative min-h-screen bg-slate-950 flex flex-col md:flex-row-reverse overflow-hidden selection:bg-orange-500/30">
@@ -205,11 +209,22 @@ export default function RegisterPage() {
                   <Input
                     id="password"
                     name="password"
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     placeholder="En az 8 karakter, büyük harf ve rakam"
                     autoComplete="new-password"
-                    className="pl-12 bg-black/20 border-white/10 text-white placeholder:text-slate-600 focus:border-cyan-500/50 focus:ring-cyan-500/20 rounded-2xl h-14 transition-all"
+                    className="pl-12 pr-12 bg-black/20 border-white/10 text-white placeholder:text-slate-600 focus:border-cyan-500/50 focus:ring-cyan-500/20 rounded-2xl h-14 transition-all"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-cyan-400 transition-colors focus:outline-none"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
+                  </button>
                 </div>
                 <FieldError errors={getFieldErrors(state)?.password} />
               </div>
@@ -222,11 +237,22 @@ export default function RegisterPage() {
                   <Input
                     id="confirmPassword"
                     name="confirmPassword"
-                    type="password"
+                    type={showConfirmPassword ? "text" : "password"}
                     placeholder="Şifrenizi tekrar girin"
                     autoComplete="new-password"
-                    className="pl-12 bg-black/20 border-white/10 text-white placeholder:text-slate-600 focus:border-cyan-500/50 focus:ring-cyan-500/20 rounded-2xl h-14 transition-all"
+                    className="pl-12 pr-12 bg-black/20 border-white/10 text-white placeholder:text-slate-600 focus:border-cyan-500/50 focus:ring-cyan-500/20 rounded-2xl h-14 transition-all"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-cyan-400 transition-colors focus:outline-none"
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
+                  </button>
                 </div>
                 <FieldError errors={getFieldErrors(state)?.confirmPassword} />
               </div>

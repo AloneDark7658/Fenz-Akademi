@@ -31,7 +31,7 @@ export function StudentTopbar({ streak, points, displayName }: StudentTopbarProp
     .toUpperCase();
 
   return (
-    <header className="h-16 flex items-center justify-between px-4 md:px-6 border-b border-white/10 bg-slate-950/80 flex-shrink-0 sticky top-0 z-40 backdrop-blur-md">
+    <header className="h-16 flex items-center justify-between px-4 md:px-6 border-b border-white/10 bg-slate-950 flex-shrink-0 sticky top-0 z-40">
       {/* Mobil Hamburger Menü */}
       <div className="flex items-center gap-3 md:hidden">
         <Sheet>
