@@ -28,8 +28,10 @@ import {
   Video,
   Layers,
   ChevronRight,
-  UploadCloud,
+  Link as LinkIcon,
+  Youtube,
   FileVideo,
+  UploadCloud,
 } from "lucide-react";
 
 // ─── Tipler ───────────────────────────────────────────────────────────────────
@@ -204,75 +206,75 @@ function AddLessonForm({ courses }: { courses: CourseOption[] }) {
   const errors = getErrors(state);
 
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [bunnyVideoId, setBunnyVideoId] = useState("");
   const [isUploading, setIsUploading] = useState(false);
+  const [bunnyVideoId, setBunnyVideoId] = useState("");
+  const [videoMode, setVideoMode] = useState<"youtube" | "bunny">("youtube");
+  const [youtubeInput, setYoutubeInput] = useState("");
+  const [youtubePreviewId, setYoutubePreviewId] = useState("");
+  const [youtubeError, setYoutubeError] = useState("");
+
+  function extractYoutubeId(url: string): string | null {
+    const match = url.match(
+      /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
+    );
+    return match?.[1] ?? null;
+  }
+
+  const handleYoutubeInput = (val: string) => {
+    setYoutubeInput(val);
+    setYoutubeError("");
+    if (!val) { setYoutubePreviewId(""); setBunnyVideoId(""); return; }
+    const id = extractYoutubeId(val);
+    if (id) { setYoutubePreviewId(id); setBunnyVideoId(val); }
+    else { setYoutubePreviewId(""); setBunnyVideoId(""); if (val.length > 10) setYoutubeError("Geçerli bir YouTube linki girin."); }
+  };
+
+  const switchMode = (mode: "youtube" | "bunny") => {
+    setVideoMode(mode);
+    setBunnyVideoId("");
+    setYoutubeInput("");
+    setYoutubePreviewId("");
+    setYoutubeError("");
+    setUploadProgress(0);
+  };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     try {
       setIsUploading(true);
-      setUploadProgress(10); // Başlangıç ibaresi
-
-      // 1. Backend'den yükleme izni al (Video oluştur)
+      setUploadProgress(10);
       const res = await fetch("/api/upload-video", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title: file.name }),
       });
       const data = await res.json();
-      
       if (!data.success) throw new Error(data.error);
-
-      // 2. Mock moddaysak veya proxy ise simüle et/gerçek yükle
       if (data.isMock) {
-        // Mock progress
         let p = 10;
         const interval = setInterval(() => {
-          p += 20;
-          setUploadProgress(p);
-          if (p >= 100) {
-            clearInterval(interval);
-            setBunnyVideoId(data.videoId);
-            setIsUploading(false);
-          }
+          p += 20; setUploadProgress(p);
+          if (p >= 100) { clearInterval(interval); setBunnyVideoId(data.videoId); setIsUploading(false); }
         }, 300);
       } else {
-        // Gerçek Doğrudan Yükleme (Direct Upload) - XMLHttpRequest ile Progress için
-        return new Promise((resolve, reject) => {
+        await new Promise<void>((resolve, reject) => {
           const xhr = new XMLHttpRequest();
           xhr.open("PUT", data.uploadUrl, true);
-          xhr.setRequestHeader("AccessKey", data.token); // Backend'den gelen token (API Key)
-          
-          xhr.upload.onprogress = (event) => {
-            if (event.lengthComputable) {
-              const percent = Math.round((event.loaded / event.total) * 100);
-              setUploadProgress(percent);
-            }
-          };
-
-          xhr.onload = () => {
-            if (xhr.status >= 200 && xhr.status < 300) {
-              setBunnyVideoId(data.videoId);
-              setIsUploading(false);
-              resolve(true);
-            } else {
-              reject(new Error("Yükleme başarısız"));
-            }
-          };
-          
-          xhr.onerror = () => reject(new Error("Ağ hatası"));
+          xhr.setRequestHeader("AccessKey", data.token);
+          xhr.upload.onprogress = (ev) => { if (ev.lengthComputable) setUploadProgress(Math.round((ev.loaded / ev.total) * 100)); };
+          xhr.onload = () => { if (xhr.status >= 200 && xhr.status < 300) { setBunnyVideoId(data.videoId); setIsUploading(false); resolve(); } else reject(new Error("Yükleme başarısız")); };
+          xhr.onerror = () => reject(new Error("İnternet hatası"));
           xhr.send(file);
         });
       }
     } catch (err) {
-      console.error(err);
-      alert("Video yüklenirken bir hata oluştu.");
-      setIsUploading(false);
-      setUploadProgress(0);
+      console.error(err); alert("Video yüklenirken hata oluştu.");
+      setIsUploading(false); setUploadProgress(0);
     }
   };
+
+
 
   return (
     <form action={formAction} className="space-y-4">
@@ -316,62 +318,120 @@ function AddLessonForm({ courses }: { courses: CourseOption[] }) {
         <FieldError errors={errors?.title} />
       </div>
 
-      {/* Video Yükleme (Bunny.net Direct Upload) */}
-      <div className="space-y-1.5">
-        <Label className="text-slate-300 text-sm font-medium">
-          Ders Videosu
-        </Label>
+      {/* Video Yükleme — Mod Seçici */}
+      <div className="space-y-3">
+        <Label className="text-slate-300 text-sm font-medium">Ders Videosu</Label>
         <input type="hidden" name="bunnyVideoId" value={bunnyVideoId} />
-        
-        {!bunnyVideoId ? (
-          <div className="relative">
-            <input 
-              type="file" 
-              accept="video/*" 
-              className="hidden" 
-              id="video-upload" 
-              onChange={handleFileUpload}
-              disabled={isUploading}
-            />
-            <Label 
-              htmlFor="video-upload" 
-              className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-all ${
-                isUploading ? "border-edu-cyan/50 bg-edu-cyan/5" : "border-white/10 bg-white/5 hover:border-edu-cyan/50 hover:bg-white/10"
-              }`}
-            >
-              {isUploading ? (
-                <div className="flex flex-col items-center w-full px-8">
-                  <Loader2 className="w-8 h-8 text-edu-cyan animate-spin mb-3" />
-                  <Progress value={uploadProgress} className="h-2 w-full bg-slate-800" />
-                  <span className="text-edu-cyan text-sm mt-2 font-medium">%{uploadProgress} Yükleniyor... (Doğrudan Yükleme)</span>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center text-slate-400">
-                  <UploadCloud className="w-8 h-8 mb-2 text-slate-300" />
-                  <span className="text-sm">Video seçmek için tıklayın</span>
-                  <span className="text-xs opacity-70 mt-1">MP4, WebM (Sınırsız Boyut / Yüksek Kalite)</span>
-                </div>
+
+        {/* Tab Toggle */}
+        <div className="flex rounded-xl overflow-hidden border border-white/10 bg-white/5 p-1 gap-1">
+          <button
+            type="button"
+            onClick={() => switchMode("youtube")}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-sm font-semibold transition-all duration-200 ${
+              videoMode === "youtube"
+                ? "bg-red-500/20 text-red-400 border border-red-500/30 shadow-sm"
+                : "text-slate-400 hover:text-slate-200"
+            }`}
+          >
+            <Youtube className="w-4 h-4" />
+            YouTube URL
+          </button>
+          <button
+            type="button"
+            onClick={() => switchMode("bunny")}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-sm font-semibold transition-all duration-200 ${
+              videoMode === "bunny"
+                ? "bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 shadow-sm"
+                : "text-slate-400 hover:text-slate-200"
+            }`}
+          >
+            <UploadCloud className="w-4 h-4" />
+            Bunny.net Yükle
+          </button>
+        </div>
+
+        {/* YouTube Modu */}
+        {videoMode === "youtube" && (
+          <div className="space-y-2">
+            <div className="relative">
+              <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+              <Input
+                value={youtubeInput}
+                onChange={(e) => handleYoutubeInput(e.target.value)}
+                placeholder="https://www.youtube.com/watch?v=..."
+                className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:border-red-400/50 rounded-xl h-11"
+              />
+              {youtubePreviewId && (
+                <button type="button" onClick={() => { setYoutubeInput(""); setYoutubePreviewId(""); setBunnyVideoId(""); }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-red-400 transition-colors text-xs">
+                  Temizle
+                </button>
               )}
-            </Label>
-          </div>
-        ) : (
-          <div className="flex items-center gap-3 p-3 bg-green-500/10 border border-green-500/20 rounded-xl text-green-400">
-            <FileVideo className="w-5 h-5 flex-shrink-0" />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold truncate">Video başarıyla yüklendi ve şifreleniyor (HLS)</p>
-              <p className="text-xs opacity-70 truncate font-mono">{bunnyVideoId}</p>
             </div>
-            <Button 
-              type="button" 
-              variant="ghost" 
-              size="sm" 
-              className="text-red-400 hover:text-red-300 hover:bg-red-400/10"
-              onClick={() => { setBunnyVideoId(""); setUploadProgress(0); }}
-            >
-              Kaldır
-            </Button>
+            {youtubeError && (
+              <p className="flex items-center gap-1 text-red-400 text-xs">
+                <AlertCircle className="w-3 h-3" />{youtubeError}
+              </p>
+            )}
+            {youtubePreviewId && (
+              <div className="rounded-2xl overflow-hidden border border-green-500/30 bg-green-500/5">
+                <div className="flex items-center gap-2 px-4 py-2 border-b border-green-500/20">
+                  <CheckCircle2 className="w-4 h-4 text-green-400" />
+                  <span className="text-green-400 text-xs font-semibold">Video bulundu — ön izleme</span>
+                </div>
+                <div className="aspect-video">
+                  <iframe src={`https://www.youtube.com/embed/${youtubePreviewId}?rel=0&modestbranding=1`}
+                    className="w-full h-full" allow="accelerometer; autoplay; clipboard-write; encrypted-media" allowFullScreen />
+                </div>
+              </div>
+            )}
           </div>
         )}
+
+        {/* Bunny.net Modu */}
+        {videoMode === "bunny" && (
+          <div className="space-y-2">
+            {!bunnyVideoId ? (
+              <div className="relative">
+                <input type="file" accept="video/*" className="hidden" id="video-upload"
+                  onChange={handleFileUpload} disabled={isUploading} />
+                <Label htmlFor="video-upload"
+                  className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-all ${
+                    isUploading ? "border-edu-cyan/50 bg-edu-cyan/5" : "border-white/10 bg-white/5 hover:border-edu-cyan/50 hover:bg-white/10"
+                  }`}>
+                  {isUploading ? (
+                    <div className="flex flex-col items-center w-full px-8">
+                      <Loader2 className="w-8 h-8 text-edu-cyan animate-spin mb-3" />
+                      <Progress value={uploadProgress} className="h-2 w-full bg-slate-800" />
+                      <span className="text-edu-cyan text-sm mt-2 font-medium">%{uploadProgress} Yükleniyor...</span>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center text-slate-400">
+                      <UploadCloud className="w-8 h-8 mb-2 text-slate-300" />
+                      <span className="text-sm">Video seçmek için tıklayın</span>
+                      <span className="text-xs opacity-70 mt-1">MP4, WebM — Sınırsız boyut</span>
+                    </div>
+                  )}
+                </Label>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3 p-3 bg-green-500/10 border border-green-500/20 rounded-xl text-green-400">
+                <FileVideo className="w-5 h-5 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold">Video yüklendi — HLS'e dönüştürülüyor</p>
+                  <p className="text-xs opacity-70 font-mono truncate">{bunnyVideoId}</p>
+                </div>
+                <Button type="button" variant="ghost" size="sm"
+                  className="text-red-400 hover:text-red-300 hover:bg-red-400/10"
+                  onClick={() => { setBunnyVideoId(""); setUploadProgress(0); }}>
+                  Kaldır
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
+
         <FieldError errors={errors?.bunnyVideoId} />
       </div>
 

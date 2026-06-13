@@ -17,6 +17,35 @@ interface HlsPlayerProps extends React.VideoHTMLAttributes<HTMLVideoElement> {
   videoRef?: React.RefObject<HTMLVideoElement | null>;
 }
 
+// YouTube URL'sinden video ID'sini çıkar
+function extractYoutubeId(url: string): string | null {
+  const match = url.match(
+    /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
+  );
+  return match?.[1] ?? null;
+}
+
+function isYoutubeUrl(url: string): boolean {
+  return url.includes("youtube.com") || url.includes("youtu.be");
+}
+
+// ── YouTube Embed Player ─────────────────────────────────────────────────────
+function YoutubeEmbed({ videoId, title }: { videoId: string; title?: string }) {
+  return (
+    <div className="relative w-full aspect-video bg-black rounded-2xl overflow-hidden border border-white/10 shadow-[0_0_40px_rgba(34,211,238,0.15)]">
+      <iframe
+        src={`https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&showinfo=0&iv_load_policy=3&color=white`}
+        title={title ?? "Video"}
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowFullScreen
+        className="absolute inset-0 w-full h-full"
+        style={{ border: "none" }}
+      />
+    </div>
+  );
+}
+
+// ── HLS / Bunny Player ───────────────────────────────────────────────────────
 export function HlsPlayer({ videoId, libraryId, hostname, videoRef, poster, className, ...props }: HlsPlayerProps) {
   const localRef = useRef<HTMLVideoElement>(null);
   const resolvedRef = videoRef || localRef;
@@ -26,6 +55,14 @@ export function HlsPlayer({ videoId, libraryId, hostname, videoRef, poster, clas
   const hlsRef = useRef<Hls | null>(null);
   const [levels, setLevels] = useState<{ id: number; height: number }[]>([]);
   const [currentLevel, setCurrentLevel] = useState<number>(-1); // -1 = Auto
+
+  // ── YouTube URL gelirse direkt embed döndür ──────────────────────────────
+  if (isYoutubeUrl(videoId)) {
+    const ytId = extractYoutubeId(videoId);
+    if (ytId) {
+      return <YoutubeEmbed videoId={ytId} />;
+    }
+  }
 
   // Eğer mock id gelirse (örneğin .env girilmemişse), örnek bir Big Buck Bunny hls stream oynatalım
   const isMock = videoId.startsWith("mock-bunny-id");
@@ -97,7 +134,7 @@ export function HlsPlayer({ videoId, libraryId, hostname, videoRef, poster, clas
   return (
     <div className={`relative w-full aspect-video bg-black/80 rounded-2xl overflow-hidden border border-white/10 group shadow-[0_0_40px_rgba(34,211,238,0.15)] ${className || ""}`}>
       {!isReady && !error && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-black/60 backdrop-blur-sm">
+        <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-black/60">
           <Loader2 className="w-10 h-10 animate-spin text-cyan-400 mb-4" />
           <p className="text-cyan-400 font-medium tracking-widest text-sm uppercase animate-pulse">
             Güvenli Yayın Bağlantısı Kuruluyor...
@@ -124,7 +161,7 @@ export function HlsPlayer({ videoId, libraryId, hostname, videoRef, poster, clas
         <div className="absolute top-4 right-4 z-20">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="bg-black/60 hover:bg-black/80 backdrop-blur-md text-white border border-white/10 p-2 rounded-lg transition-colors shadow-lg">
+              <button className="bg-black/60 hover:bg-black/80 text-white border border-white/10 p-2 rounded-lg transition-colors shadow-lg">
                 <Settings className="w-4 h-4" />
               </button>
             </DropdownMenuTrigger>
